@@ -1,0 +1,140 @@
+﻿@model Proteus.Models.StudentBebeoseisViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Βεβαιώσεις σπουδαστή";
+    Layout = "~/Views/Shared/_LayoutMin.cshtml";
+    int bebeosiID = Model.ΒΕΒΑΙΩΣΗ_ΚΩΔ;
+    StudentInfoViewModel InfoData = ViewBag.StudentData;
+}
+
+
+<link href="@Url.Content("~/Content/mvcNotify.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/mvcNotify.js")" type="text/javascript"></script>
+<script type="text/javascript">
+    mvcNotify.autoClearTimeout = 10000; //Unit of milliseconds.
+    mvcNotify.typesToConsoleLog = "all"; //Log all types to console.
+</script>
+
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style>
+        .k-textbox {
+            display: block;
+            width: 100%;
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.428571429;
+            color: #555555;
+            vertical-align: middle;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        }
+
+            .k-textbox:focus {
+                border-color: #66afe9;
+                outline: 0;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+            }
+    </style>
+</head>
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="page-header" style="margin:5px 60px 5px 60px">
+    </div>
+
+    <div class="container body-content">
+
+        <fieldset id="Data">
+            <table class="col-md-12" style="border:solid;border-width:thin;margin:40px 20px 20px 20px">
+                <tr id="title">
+                    <th style="background-color:#494949;padding-left:20px;padding-top:4px;padding-bottom:4px">
+                        <font style="font-family:'Segoe UI';font-size:large;color:white;">Κείμενο και εκτύπωση βεβαίωσης</font>
+                    </th>
+                </tr>
+                <tr id="Links">
+                    <td>
+                        <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                            <a class="btn btn-warning" style="font-family:'Segoe UI';font-size:14px" href="#" onclick="javascript:window.close();opener.window.focus();">Κλείσιμο καρτέλας</a>
+                        </span>
+                        <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                            @Html.ActionLink("Βεβαίωση ΑΠΣ", "BebeosiAPSPrint", "School", new { bebeosiId = bebeosiID }, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })
+                        </span>
+                        <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                            @Html.ActionLink("Βεβαίωση για στρατολογία", "BebeosiArmyPrint", "School", new { bebeosiId = bebeosiID }, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })
+                        </span>
+                        <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                            @Html.ActionLink("Βεβαίωση σπουδών", "BebeosiSpoudesPrint", "School", new { bebeosiId = bebeosiID }, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })
+                        </span>
+                        <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                            <input style="font-family:'Segoe UI';font-size:14px" type="submit" value="Αποθήκευση" class="btn btn-success" />
+                        </span>
+                    </td>
+                </tr>
+                <tr id="info2">
+                    <td>
+                        <div class="col-md-10" style="margin-top:10px">
+                            <div class="col-md-3">
+                                <label class="control-label">Σπουδαστής:</label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-control smartShortText" title="@InfoData.ΟΝΟΜΑΤΕΠΩΝΥΜΟ" style="max-height:34px; background-color:#EEE">
+                                    @InfoData.ΟΝΟΜΑΤΕΠΩΝΥΜΟ
+                                </label>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="info3">
+                    <td>
+                        <div class="col-md-10">
+                            <div class="col-md-3">
+                                <label class="control-label">Ειδικότητα:</label>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-control smartShortText" title="@InfoData.EIDIKOTITA_TEXT)" style="max-height:34px; background-color:#EEE">
+                                    @InfoData.EIDIKOTITA_TEXT
+                                </label>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="col-md-10" style="margin-bottom:10px">
+                            @Html.LabelFor(model => model.ΣΤΡΑΤΟΛΟΓΙΚΟ_ΓΡΑΦΕΙΟ, new { @class = "control-label col-md-3" })
+                            @Html.EditorFor(model => model.ΣΤΡΑΤΟΛΟΓΙΚΟ_ΓΡΑΦΕΙΟ, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.ValidationMessageFor(model => model.ΣΤΡΑΤΟΛΟΓΙΚΟ_ΓΡΑΦΕΙΟ, "", new { @class = "text-danger" })
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="col-md-10" style="margin-bottom:10px">
+                            @Html.LabelFor(model => model.ΓΙΑ_ΧΡΗΣΗ, new { @class = "control-label col-md-3" })
+                            @Html.TextAreaFor(model => model.ΓΙΑ_ΧΡΗΣΗ, 5, 80, new { @style = "width:520px" })
+                            @Html.ValidationMessageFor(model => model.ΓΙΑ_ΧΡΗΣΗ, "", new { @class = "text-danger" })
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </fieldset>
+
+    </div>
+}   @* ---  End of BeginForm ----------*@
+
+   

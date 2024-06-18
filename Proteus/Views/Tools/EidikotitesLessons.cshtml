@@ -1,0 +1,146 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Ωρολόγια προγράμματα";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 11px;
+    }
+</style>
+
+
+    @Html.AntiForgeryToken()
+    <div class="page-header" style="margin:5px 30px 5px 30px">
+        <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+            <font style="color:#494949;float:left;font-family:'Segoe UI'">Ωρολόγια Προγράμματα</font>
+        </span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+            @Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })
+        </span>
+        <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+        <span style="margin:5px 5px 5px 10px;float:right;font-family:'Segoe UI';font-size:14px">
+            @Html.ActionLink("Εκτύπωση", "EidikotitesLessonsPrint", "Tools", null, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })
+        </span>
+    </div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+    @(Html.Kendo().Grid<SYS_EIDIKOTITES_IEKViewModel>()
+    .Name("Master")
+    .Columns(columns =>
+    {
+        columns.Bound(c => c.EIDIKOTITA_TEXT).Width(80);
+        columns.Bound(c => c.EIDIKOTITA_CODE).Width(20);
+    })
+    .HtmlAttributes(new { style = "font-size:13px" })
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .Selectable()
+    .Filterable()
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Scrollable(scr => scr.Height(200))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(40)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.EIDIKOTITA_ID);
+        })
+        .Events(events => events.Error("error_handler"))
+        .Read(read => read.Action("EidikotitaKatartisi_Read", "Tools"))
+    )
+    .Events(events => events.Change("change"))
+    )
+
+</div>
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+
+    @(Html.Kendo().Grid<LessonsIekViewModel>()
+    .Name("Child")
+    .AutoBind(false)
+    .HtmlAttributes(new { style = "display: block;font-size:12px" })
+    .Navigatable()
+    .Groupable()
+    .Filterable()
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .Scrollable(scr => scr.Height(360))
+    .Columns(columns =>
+    {
+        columns.Bound(c => c.LESSON_TEXT).Width(76);
+        columns.ForeignKey(f => f.LESSON_TERM, (IEnumerable<SYS_TERM>)ViewData["terms"], "TERM_ID", "TERM").Width(14);
+        columns.ForeignKey(f => f.LESSON_TYPE, (IEnumerable<LESSON_TYPES>)ViewData["lessontypes"], "LESSON_TYPE_ID", "LESSON_TYPE_TEXT").Width(14);
+        columns.Bound(c => c.LESSON_HOURS_WEEK).Width(14);
+        columns.Bound(c => c.LESSON_HOURS).Width(12);
+    })
+    .DataSource(ds => ds
+        .Ajax()
+        .Batch(true)
+        .PageSize(40)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.LESSON_ID);
+            model.Field(p => p.LESSON_TERM).DefaultValue(1);
+            model.Field(p => p.LESSON_TYPE).DefaultValue(1);
+            model.Field(p => p.LESSON_HOURS).Editable(false);
+        })
+        .Group(groups => groups.Add(p => p.LESSON_TERM))
+        .Read(read => read.Action("Lesson_Read", "Tools"))
+        .Events(events => events.Error("error_handler"))
+    )
+    )
+</div>
+
+
+<script type="text/javascript">
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var eidikotitaId = dataItem.EIDIKOTITA_ID;
+
+        $("#Child").data("kendoGrid").dataSource.read({ eidikotitaID: eidikotitaId });
+        $("#Child").css("display", "block");
+    }
+
+    function data() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        return { eidikotitaID: dataItem.EIDIKOTITA_ID };
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#Child").data("kendoGrid");
+        var dataItem = $("#Master").dataItem($("#Master").select());
+        var eidikotitaId = dataItem.EIDIKOTITA_ID;
+
+        grid.dataSource.read({ eidikotitaID: eidikotitaId });
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Σφάλμα:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            MessageBoxAlert(message);
+        }
+    }
+
+</script>
+

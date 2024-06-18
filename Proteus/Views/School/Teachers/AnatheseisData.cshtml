@@ -1,0 +1,227 @@
+﻿@*@model IekLessonsViewModel*@
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Αναθέσεις εκπαιδευτών";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 11px;
+    }
+</style>
+
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Αναθέσεις εκπαιδευτών</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+        @(Html.Kendo().Grid<TeacherInfoViewModel>()
+        .Name("teachers")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΑΦΜ).Width(10).Groupable(false);
+            columns.Bound(c => c.ΟΝΟΜΑΤΕΠΩΝΥΜΟ).Width(30).Groupable(false)
+                .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(c => c.GENDER).Width(10);          
+            columns.Bound(c => c.KLADOS_NAME).Width(10);
+            columns.Bound(c => c.EIDIKOTITA_TEXT).Width(60);
+        })
+        .HtmlAttributes(new { style="font-size:12px" })
+        .Selectable()
+        .Groupable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Filterable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(280))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(40)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.TEACHER_ID);
+            })            
+            .Read(read => read.Action("TeacherInfo_Read", "School"))            
+            .Aggregates(a =>
+            {
+                a.Add(p => p.ΟΝΟΜΑΤΕΠΩΝΥΜΟ).Count();
+            })
+            )
+            .Events(events => events.Change("change"))
+
+        )  @* --- data grid ---*@
+</div>
+
+<div class="body-content" style="margin:5px 30px 5px 30px;font-size:small">
+
+    @(Html.Kendo().PanelBar()
+    .Name("Panel1")
+    .Items(items =>
+    {
+        items.Add()
+            .Text("Αναθέσεις μαθημάτων")
+            .Selected(false)
+            .Expanded(true)
+            .Content(
+            @<text>
+
+        @(Html.Kendo().Grid<TeacherAnatheseisViewModel>()
+        .Name("Child")
+        .HtmlAttributes(new { style = "font-size:12px" })
+        .AutoBind(false)
+        .Navigatable()
+        .Filterable()
+        .Groupable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(260))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΠΕΡΙΟΔΟΣ_ΚΩΔ, (IEnumerable<ΠΕΡΙΟΔΟΙ>)ViewData["periodoi"], "PERIOD_ID", "ΠΕΡΙΟΔΟΣ").Width(14).Filterable(false);
+            columns.ForeignKey(f => f.ΕΙΔΙΚΟΤΗΤΑ, (IEnumerable<viewIEK_EIDIKOTITES>)ViewData["eidikotitesIek"], "EIDIKOTITA_ID", "EIDIKOTITA_TEXT").Width(60);
+            columns.ForeignKey(f => f.ΕΞΑΜΗΝΟ, (IEnumerable<SYS_TERM>)ViewData["terms"], "TERM_ID", "TERM").Width(11).EditorTemplateName("AnathesiTermId").Filterable(false).Title("Εξάμ.");
+            columns.ForeignKey(f => f.ΜΑΘΗΜΑ_ΚΩΔ, (IEnumerable<qryIEK_EIDIKOTITES_LESSONS>)ViewData["lessons"], "LESSON_ID", "LESSON_DESC").Width(60).EditorTemplateName("AnathesiLessonId").Groupable(false);
+            columns.Bound(c => c.ΩΡΕΣ_ΘΕΩΡΙΑ).Width(8).Groupable(false).Filterable(false);
+            columns.Bound(c => c.ΩΡΕΣ_ΕΡΓΑΣΤΗΡΙΟ).Width(8).Groupable(false).Filterable(false);
+            columns.Bound(c => c.ΣΥΝΟΛΟ).Width(8).Groupable(false).Hidden();
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(38);
+        })
+        .ToolBar(toolBar => toolBar.Create())
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(false)
+            .PageSize(40)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΕΑ_ΚΩΔ);
+                model.Field(p => p.ΣΥΝΟΛΟ).Editable(false);
+                model.Field(p => p.ΠΕΡΙΟΔΟΣ_ΚΩΔ).DefaultValue(1);
+                model.Field(p => p.ΕΙΔΙΚΟΤΗΤΑ).DefaultValue((int)ViewData["defaultEidikotita"]);
+                model.Field(p => p.ΕΞΑΜΗΝΟ).DefaultValue(0);
+                model.Field(p => p.ΜΑΘΗΜΑ_ΚΩΔ).DefaultValue((int)ViewData["defaultLesson"]);
+                model.Field(p => p.ΩΡΕΣ_ΘΕΩΡΙΑ).DefaultValue(0);
+                model.Field(p => p.ΩΡΕΣ_ΕΡΓΑΣΤΗΡΙΟ).DefaultValue(0);
+                model.Field(p => p.ΣΥΝΟΛΟ).DefaultValue(0);
+                
+            })
+            .Create(create => create.Action("Anathesi_Create", "School").Data("data"))
+            .Read(read => read.Action("Anathesi_Read", "School").Data("data"))
+            .Update(update => update.Action("Anathesi_Update", "School").Data("data"))
+            .Destroy("Anathesi_Destroy", "School")
+            .Events(events => events.Error("error_handler"))                        
+        )
+        .Events(e => e.SaveChanges("onSave"))
+        )
+        </text>);
+    })
+    )
+
+</div>
+
+<script>
+    function filterLessons() {
+        var eidikotitaID = $("#ΕΙΔΙΚΟΤΗΤΑ").data("kendoDropDownList").value();
+        var termID = $("#ΕΞΑΜΗΝΟ").data("kendoDropDownList").value();
+        if (eidikotitaID && termID) {
+            return {
+                eidikotita: eidikotitaID,
+                term: termID
+            }
+        }
+        else {
+            return {
+                eidikotita: 0,
+                term: 0
+            }
+        }
+    }
+
+    // not used
+    function filterTerms() {
+        return {
+            eidikotita: $("#ΕΙΔΙΚΟΤΗΤΑ").data("kendoDropDownList").value(),
+        };
+    }
+
+</script>
+
+<script id="events" type="text/javascript">
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var teacherID = dataItem.TEACHER_ID;
+
+        //alert("teacherID=" + teacherID);
+        $("#Child").data("kendoGrid").dataSource.read({ teacherId: teacherID });
+        $("#Child").css("display", "block");
+    }
+
+    function data() {
+        var masterGrid = $("#teachers").data("kendoGrid");
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            return { teacherId: dataItem.TEACHER_ID };
+        }
+        else {
+            return { teacherId: 0 };
+        }
+    }
+
+    function onSave(e) {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var teacherID = 0;
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            teacherID = dataItem.TEACHER_ID;
+        }
+
+        $("#Child").data("kendoGrid").dataSource.read({ teacherId: teacherID });
+        $("#Child").css("display", "block");
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#teachers").data("kendoGrid");
+        grid.dataSource.read();
+
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        $("#Child").data("kendoGrid").dataSource.read();
+    }
+
+</script>
+
+
+
+
+

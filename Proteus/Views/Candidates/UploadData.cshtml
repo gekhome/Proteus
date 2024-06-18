@@ -1,0 +1,338 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Μεταφόρτωση αρχείων";
+    Layout = "~/Views/Shared/_LayoutMin.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 12px;
+    }
+</style>
+
+<link href="@Url.Content("~/Content/mvcNotify.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/mvcNotify.js")" type="text/javascript"></script>
+<script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.11.4/jquery-ui.js" type="text/javascript"></script>
+<link href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+
+<script type="text/javascript">
+    mvcNotify.autoClearTimeout = 15000; //Unit of milliseconds. Requires mvcNotify.typesToAutoClear to be set to something (default behavior).
+    mvcNotify.typesToConsoleLog = "all"; //Log all types to console.
+</script>
+
+
+@Html.AntiForgeryToken()
+<div class="row" style="margin:5px 5px 5px 5px; margin-top:20px">
+    <div style="margin:5px 20px 5px 20px">
+        <span style="font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000;float:left">
+            <font style="color:#292929;font-family:'Segoe UI'">Μεταφόρτωση δικαιολογητικών στον εξυπηρετητή</font>
+        </span>
+        <span style="margin:0px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+            @Html.ActionLink("Επιστροφή", "Index", "Candidates", null, new { @class = "btn btn-warning", style = "font-size:14px" })
+        </span>
+        <button class="btn btn-info" style="margin:0px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+        <button class="btn btn-primary" style="margin:0px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="showHelp()">Οδηγίες</button>
+    </div>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+        @(Html.Kendo().Grid<UploadsViewModel>()
+        .Name("Master")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.UPLOAD_DATE).Width(20).Filterable(false);
+            columns.Bound(c => c.UPLOAD_SUMMARY).Width(70);
+            columns.Bound(c => c.UPLOAD_NAME).Width(40);
+            columns.Command(command => { command.Edit(); command.Custom("\u2716" + " Διαγραφή").Click("deleteRow"); }).Width(34);
+            columns.Template(
+                @<text></text>)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("UploadForm", "Candidates") + "?uploadId=#=UPLOAD_ID#' target = _blank><span class=\"k-icon k-add\"></span>Ανέβασμα</a>"
+            ).Width(20);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InLine).DisplayDeleteConfirmation(false))
+        .Navigatable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .Selectable()
+        .Filterable()
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(200))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(40)
+        .ServerOperation(true)
+        .Model(model =>
+        {
+            model.Id(p => p.UPLOAD_ID);
+            model.Field(p => p.UPLOAD_NAME).Editable(false);
+        })
+        .Create(create => create.Action("Upload_Create", "Candidates"))
+        .Read(read => read.Action("Upload_Read", "Candidates"))
+        .Update(update => update.Action("Upload_Update", "Candidates"))
+        //.Destroy(destroy => destroy.Action("Upload_Destroy", "Candidates"))
+        .Events(events => events.Error("error_handler1"))
+        )
+        .Events(events => events.Change("change"))
+        )
+    </div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+        @(Html.Kendo().Grid<UploadsFilesViewModel>()
+        .Name("Child")
+        .AutoBind(false)
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })
+        .Navigatable()
+        .Filterable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(220))
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ID).Width(20).Hidden();
+            columns.Bound(c => c.FILENAME).Width(50).Filterable(false);
+            columns.Bound(c => c.EXTENSION).Width(15).Filterable(false);
+            columns.Bound(c => c.SCHOOL_USER).Width(20).Filterable(false);
+            columns.Bound(c => c.SCHOOLYEAR_TEXT).Width(15).Filterable(false);
+            columns.Command(command => { command.Destroy(); command.Custom("\u13EB" + " Προβολή").Click("showPDF"); }).Width(20);
+            columns.Template(
+                @<text></text>)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("Download", "Candidates") + "?file_id=#=ID#'><span class=\"k-icon k-update\"></span>Κατέβασμα</a>"
+            ).Width(20);
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(false)
+            .PageSize(20)
+            .ServerOperation(true)
+            .Model(model =>
+            {
+                model.Id(p => p.ID);
+            })
+            .Read(read => read.Action("UploadFiles_Read", "Candidates").Data("data"))
+            .Destroy(destroy => destroy.Action("UploadFiles_Destroy", "Candidates"))
+            .Events(events => events.Error("error_handler2"))
+        )
+        )
+</div>
+
+
+
+<div id="modalWindow">
+    <div class="inline-picture">
+        <img src='@Url.Content("~/Images/other/file-upload.jpg")' height="260" width="380" alt="Στοιχεία μεταφόρτωσης" />
+        Στοιχεία μεταφόρτωσης αρχείων
+    </div>
+    <p style="margin-top:10px">
+        Στο πάνω πλέγμα δημιουργούμε μία εγγραφή στην οποία καταχωρούμε μία από τις
+        αιτήσεις που κάνουμε (αν είναι πάνω από μία) και μια σύντομη περιγραφή, π.χ.
+        "Υποβολή πιστοποιητικών για { ονόματα παιδιών }". Αποθηκεύουμε την εγγραφή.
+    </p>
+    <p>
+        Πατάμε το κουμπί "Ανέβασμα" με το οποίο ανοίγει η καρτέλα μεταφόρτωσης στην οποία
+        επιλέγουμε από τον υπολογιστή μας τα σκαναρισμένα έντυπα. Μπορούμε να επιλέξουμε
+        πολλά έγγραφα ταυτόχρονα για μεταφόρτωση (οδηγίες υπάρχουν στην καρτέλα μεταφόρτωσης).
+    </p>
+    <p>
+        Στη σελίδα αυτή δημιουργούμε <b>μία μόνο</b> εγγραφή με τα στοιχεία που ζητούνται. Σε αυτή
+        συσχετίζονται όλα τα έντυπα που θα επιλέξουμε στην καρτέλα μεταφόρτωσης.
+    </p>
+    <p>
+        <b>Δεν δημιουργούμε μία εγγραφή, στο πάνω πλέγμα, για κάθε έντυπο που ανεβάζουμε!</b>.
+        Αφού γίνει η μεταφόρτωση, τα ανεβασμένα αρχεία εμφανίζονται στο κάτω πλέγμα της σελίδας αυτής.
+        Για την εμφάνιση των ανεβασμένων εγγράφων, στο κάτω πλέγμα, πρέπει να κάνουμε κλικ
+        επάνω στη γραμμή με την περιγραφή του πάνω πλέγματος, οπότε εμφανίζεται χρωματισμένη,
+        δηλαδή επιλεγμένη. Η εικόνα απεικονίζει τον ορθό τρόπο καταχώρησης/μεταφόρτωσης.
+    </p>
+    <div style="margin-left:0px;margin-top:20px;text-align:center;">
+        <button id="close" class="k-button" style="margin-left:5px">Κλείσιμο</button>
+    </div>
+</div>
+
+<div id="dialog" style="display: none"></div>
+
+
+<script type="text/javascript">
+
+        $(document).ready(function () {
+
+            wnd = $("#modalWindow").kendoWindow({
+                title: "Οδηγίες καταχώρησης",
+                modal: true,
+                visible: false,
+                resizable: false,
+                height: 460,
+                width: 800
+            }).data("kendoWindow");
+
+        });
+
+        function deleteRow(e) {
+            e.preventDefault();
+            var grid = this; //Get the grid from which the pop-up is coming
+            var row = $(e.currentTarget).closest("tr");
+            var data = this.dataItem(row);
+            var uploadID = data.UPLOAD_ID;
+
+            // ------- when column template delete is used --------
+            //var grid = $("#Master").data("kendoGrid");
+            //var model = grid.dataItem($(e.target).closest("tr"));
+            //var row = $(e.target).closest("tr");
+            //var uploadID = model.UPLOAD_ID;
+            // ----------------------------------------------------
+
+            var text = "Θέλετε να γίνει διαγραφή της εγγραφής;";
+            MessageBoxConfirm(text, "Επιβεβαίωση διαγραφής").done(function () {
+                grid.removeRow(row);
+                $.ajax({
+                    url: '@Url.Action("Upload_Delete", "Candidates")?uploadId=' + uploadID,
+                    type: 'POST',
+                    data: "",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (out) {
+                        if (out) MessageBoxAlert(out, "Ειδοποίηση");
+                        RefreshMasterGrid();
+                    },
+                    error: function () {
+                        MessageBoxAlert("Προέκυψε σφάλμα. Δοκιμάστε πάλι αργότερα.", "Σφάλμα");
+                    }
+                });
+            }).fail(function () {
+                return;
+            });
+
+        }
+
+        function showHelp() {
+            // Open user-dialog window
+            wnd.center().open();
+
+            $("#close").click(function () {
+                wnd.close();
+            });
+
+        }
+
+        function RefreshMasterGrid(e) {
+            var grid = $("#Master").data("kendoGrid");
+            grid.dataSource.read();
+        }
+
+        function RefreshGrid(e) {
+            var grid = $("#Child").data("kendoGrid");
+            grid.dataSource.read();
+        }
+
+
+        function change(e) {
+            var dataItem = this.dataItem(this.select());
+            var uploadID = dataItem.UPLOAD_ID;
+
+            $("#Child").data("kendoGrid").dataSource.read({ uploadId: uploadID });
+            $("#Child").css("display", "block");
+        }
+
+        function data() {
+            var masterGrid = $("#Master").data("kendoGrid");
+            // get data item for selected row
+            var dataItem = masterGrid.dataItem(masterGrid.select());
+            if (dataItem) {
+                return { uploadId: dataItem.UPLOAD_ID };
+            }
+            else {
+                return { uploadId: 0 };
+            }
+        }
+
+        function error_handler1(e) {
+            if (e.errors) {
+                var message = "";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "<br/>";
+                        });
+                    }
+                });
+                MessageBoxAlert(message, "Σφάλμα");
+            }
+            $("#Master").data("kendoGrid").dataSource.read();
+        }
+
+        function error_handler2(e) {
+            if (e.errors) {
+                var message = "";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "<br/>";
+                        });
+                    }
+                });
+                MessageBoxAlert(message, "Σφάλμα");
+            }
+            $("#Child").data("kendoGrid").dataSource.read();
+        }
+
+    </script>
+
+<style>
+    .inline-picture {
+        float: left;
+        margin: 30px 30px 20px 30px;
+        text-align: center;
+    }
+
+    .inline-picture img {
+        display: block;
+        margin-bottom: 10px;
+    }
+</style>
+
+<script type="text/javascript">
+
+    function showPDF(e) {
+        e.preventDefault();
+        var grid = this;
+        var row = $(e.currentTarget).closest("tr");
+        var data = this.dataItem(row);
+
+        var currentDomain = '@Url.Content("~")';
+        var url = currentDomain + "Uploads/" + data.SCHOOL_USER + "/" + data.SCHOOLYEAR_TEXT + "/";
+        fileName = data.ID + data.EXTENSION;
+
+        $("#dialog").dialog({
+            modal: true,
+            title: fileName,
+            width: 860,
+            height: 700,
+            buttons: {
+                Κλείσιμο: function () {
+                    $(this).dialog('close');
+                }
+            },
+            open: function () {
+                var object = "<object data=\"{FileName}\" type=\"application/pdf\" width=\"800px\" height=\"600px\">";
+                object += "Δεν μπορεί να γίνει προβολή του αρχείου είτε γιατί δεν μεταφορτώθηκε είτε γιατί δεν έχετε εγκατεστημένο PDF Reader.";
+                object += "</object>";
+                object = object.replace(/{FileName}/g, url + fileName);
+                $("#dialog").html(object);
+            }
+        });
+    }
+
+</script>

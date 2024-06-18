@@ -1,0 +1,87 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Προβολή κατάταξης";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Προβολή και επεξεργασία κατάταξης</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+        @Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })
+    </span>
+    <span style="margin:5px 5px 0px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+        @Html.ActionLink("Εκτύπωση", "Index", "Admin", null, new { @class = "btn btn-info", style = "font-size:14px", target = "_blank" })
+    </span>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+    @(Html.Kendo().Grid<XmAitiseisResultsViewModel>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΕΠΩΝΥΜΟ).Width(30).Groupable(false);
+            columns.Bound(c => c.ΟΝΟΜΑ).Width(30).Groupable(false);
+            columns.ForeignKey(f => f.ΕΙΔΙΚΟΤΗΤΑ1, (IEnumerable<ΧΜ_sqlEIDIKOTITA_SELECTOR>)ViewData["eidikotites"], "EIDIKOTITA_ID", "EIDIKOTITA_TERM").Width(70);
+            columns.Bound(c => c.ΜΟΡΙΑ).Width(10).Filterable(false).Groupable(false);
+            columns.ForeignKey(f => f.ΑΠΟΤΕΛΕΣΜΑ, (IEnumerable<ΧΜ_ΑΠΟΤΕΛΕΣΜΑ>)ViewData["results"], "ΑΠΟΤΕΛΕΣΜΑ_ΚΩΔ", "ΑΠΟΤΕΛΕΣΜΑ").EditorTemplateName("ApotelesmaId").Width(18);
+            columns.Command(command => { command.Edit(); }).Width(32);
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Groupable()
+        .Navigatable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .Filterable()
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(440))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΑΙΤΗΣΗ_ΚΩΔ);
+            model.Field(m => m.ΜΟΡΙΑ).Editable(false);
+            model.Field(m => m.ΕΙΔΙΚΟΤΗΤΑ1).DefaultValue(ViewData["defaultEidikotita"]);
+            model.Field(m => m.ΑΠΟΤΕΛΕΣΜΑ).DefaultValue(0);              
+        })
+        .Read(read => read.Action("XmAitisiResult_Read", "MoriaSchool"))
+        .Update(update => update.Action("XmAitisiResult_Update", "MoriaSchool"))
+        .Events(events => events.Error("error_handler"))
+        )
+    )
+</div>
+
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+            RefreshGrid(e);
+        }
+    }
+
+</script>

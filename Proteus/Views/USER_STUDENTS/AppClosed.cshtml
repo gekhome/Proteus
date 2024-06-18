@@ -1,0 +1,27 @@
+﻿
+@{
+    ViewBag.Title = "Εφαρμογή κλειστή";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string Message = (string)ViewData["message"];
+
+    if (String.IsNullOrEmpty(Message))
+    {
+        Message = "Η εφαρμογή είναι προσωρινά απενεργοποιημένη.";
+    }
+}
+
+<div class="banner" style="background-color:#1D7CAE;margin:0px 0px 0px 0px">
+    <div class="banner" style="align-content:center">
+        <table style="margin-top:40px">
+            <tr>
+                <td align="left" style="margin:40px 60px 40px 40px"><img src="~/images/other/power-off.png" height="180" width="160" style="margin:20px 20px 20px 20px"></td>
+                <td>
+                    <p style="color:whitesmoke;font-family:'Segoe UI';font-size:28px;align-content:center;margin-left:40px">
+                        @Message
+                    </p>
+                    <p></p>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

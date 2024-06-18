@@ -1,0 +1,103 @@
+﻿@model regPraktikiParousiaViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style scoped="scoped">
+        .k-detail-cell .k-tabstrip .k-content {
+            padding: 0.2em;
+        }
+
+        .ergodotis-details ul {
+            list-style: none;
+            font-style: italic;
+            margin: 15px;
+            padding: 0;
+        }
+
+        .ergodotis-details ul li {
+            margin: 0;
+            line-height: 1.7em;
+        }
+
+        .ergodotis-details label {
+            display: inline-block;
+            width: 200px;
+            padding-right: 10px;
+            text-align: right;
+            font-style: normal;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="body-content" style="margin:5px 0px 5px 0px;font-size:small;">
+
+        @(Html.Kendo().TabStrip()
+        .Name("TabStrip")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text("Στοιχεία πρακτικής").Content(
+                @<div class="ergodotis-details">
+                    <table>
+                        <tr>
+                            <td style="width:800px">
+                                <ul>
+                                    <li>
+                                        <label>Πρακτική από:</label>@Html.DisplayFor(m => m.ΠΡΑΚΤΙΚΗ_ΑΠΟ, new { @class = "control-label col-md-10" })
+                                    </li>
+                                    <li>
+                                        <label>Πρακτική έως:</label>@Html.DisplayFor(m => m.ΠΡΑΚΤΙΚΗ_ΕΩΣ, new { @class = "control-label col-md-10" })
+                                    </li>
+                                    <li>
+                                        <label>Ώρες πρακτικής:</label>@Html.DisplayFor(m => m.ΠΡΑΚΤΙΚΗ_ΩΡΕΣ, new { @class = "control-label col-md-10" })
+                                    </li>
+                                    <li>
+                                        <label>Αντικείμενο:</label>@Html.DisplayFor(m => m.ΠΕΡΙΓΡΑΦΗ, new { @class = "control-label col-md-10" })
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+                </div>);
+
+            items.Add().Text("Στοιχεία εργοδότη").Content(
+                @<div class="ergodotis-details">
+                <table>
+                    <tr>
+                        <td style="width:600px">
+                            <ul>
+                                <li>
+                                    <label>Α.Φ.Μ. :</label>@Html.DisplayFor(m => m.ΕΡΓΟΔΟΤΗΣ_ΑΦΜ, new { @class = "control-label col-md-10" })
+                                </li>
+                                <li>
+                                    <label>Τηλέφωνα:</label>@Html.DisplayFor(m => m.ΤΗΛΕΦΩΝΑ, new { @class = "control-label col-md-10" })
+                                </li>
+                                <li>
+                                    <label>Διεύθυνση:</label>@Html.DisplayFor(m => m.ΔΙΕΥΘΥΝΣΗ, new { @class = "control-label col-md-10" })
+                                </li>
+                                <li>
+                                    <label>Υπεύθυνος:</label>@Html.DisplayFor(m => m.ΥΠΕΥΘΥΝΟΣ, new { @class = "control-label col-md-10" })
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
+</div>);
+        })
+)   @*-- Tabstrip ---*@
+    </div>
+</body>
+</html>

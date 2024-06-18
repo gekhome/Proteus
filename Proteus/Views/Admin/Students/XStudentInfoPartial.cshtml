@@ -1,0 +1,141 @@
+﻿@model StudentInfoViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    Layout = null;
+    string date_birth = "";
+    Nullable<DateTime> dt = Model.ΗΜΝΙΑ_ΓΕΝΝΗΣΗ;
+    date_birth = dt.HasValue ? dt.Value.ToString("dd-MM-yyyy") : string.Empty;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style scoped="scoped">
+        .k-detail-cell .k-tabstrip .k-content {
+            padding: 0.2em;
+        }
+
+        .student-details ul {
+            list-style: none;
+            font-style: italic;
+            margin: 10px;
+            padding: 0;
+        }
+
+        .student-details ul li {
+            margin: 0;
+            line-height: 1.7em;
+        }
+
+        .student-details label {
+            display: inline-block;
+            width: 200px;
+            padding-right: 10px;
+            text-align: right;
+            font-style: normal;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="body-content" style="margin:5px 0px 5px 0px;font-size:small;">
+
+        @(Html.Kendo().TabStrip()
+        .Name("TabStrip")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text("Εγγραφές").Content(@<text>
+
+            @(Html.Kendo().Grid<EgrafesInfoViewModel>()
+            .Name("Egrafes")
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.ΤΜΗΜΑ_ΟΝΟΜΑ).Width(20);
+                columns.Bound(o => o.ΗΜΝΙΑ_ΕΓΓΡΑΦΗ).Width(12);
+                columns.Bound(o => o.ΗΜΝΙΑ_ΠΕΡΑΣ).Width(12);
+                columns.Bound(o => o.ΕΓΓΡΑΦΗ_ΕΙΔΟΣ_ΛΕΚΤΙΚΟ).Width(20);
+                columns.Bound(o => o.ΦΟΙΤΗΣΗ_ΛΕΚΤΙΚΟ).Width(20);
+            })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                .Read(read => read.Action("EgrafesInfo_Read", "Admin", new { studentId = Model.STUDENT_ID }))
+            )
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(3))
+            .Sortable()
+            .Filterable()
+            .HtmlAttributes(new { style = "display: block;font-size:13px" })        
+            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+            .Scrollable(scr => scr.Height(140))                
+            )
+            </text>);
+            items.Add().Text("Στοιχεία σπουδαστή").Content(
+                @<div class="student-details">
+                     <table>
+                         <tr>
+                             <td style="width:500px">
+                                 <ul>
+                                     <li>
+                                         <label>Πατρώνυμο:</label>@Model.ΠΑΤΡΩΝΥΜΟ
+                                     </li>
+                                     <li>
+                                         <label>Μητρώνυμο:</label>@Model.ΜΗΤΡΩΝΥΜΟ
+                                     </li>
+                                     <li>
+                                         <label>Ημ/νία γέννησης:</label>@date_birth
+                                     </li>
+                                     <li>
+                                         <label>Ηλικία:</label>@Model.ΗΛΙΚΙΑ
+                                     </li>
+                                     <li>
+                                         <label>Διεύθυνση:</label>@Model.ΔΙΕΥΘΥΝΣΗ
+                                     </li>
+                                     <li>
+                                         <label>Τηλέφωνα:</label>@Model.ΤΗΛΕΦΩΝΑ
+                                     </li>
+                                </ul>
+                         </td>
+                             <td style="width:500px">
+                                 <ul>
+                                     <li>
+                                         <label>Απολυτήριο:</label>@Model.ΑΠΟΛΥΤΗΡΙΟ_ΛΕΚΤΙΚΟ
+                                     </li>
+                                     <li>
+                                         <label>Ημ/νία εισόδου:</label>@Model.ΠΡΑΞΗ_ΕΙΣΟΔΟΥ_ΗΜΝΙΑ.Value.ToString("d")
+                                     </li>
+                                     <li>
+                                         <label>Πράξη εισόδου:</label>@Model.ΠΡΑΞΗ_ΕΙΣΟΔΟΥ
+                                     </li>
+                                     <li>
+                                         <label>Εξάμηνα σπουδών:</label>@Model.ΣΠΟΥΔΕΣ_ΔΙΑΡΚΕΙΑ.ToString()
+                                     </li>
+                                     <li>
+                                         <label>ΑΦΜ:</label>@Model.ΑΦΜ
+                                     </li>
+                                     <li>
+                                         <label>ΑΜΚΑ:</label>@Model.ΑΜΚΑ
+                                     </li>
+                                     <li>
+                                         <label>Υπηκοότητα:</label>@Model.ΥΠΗΚΟΟΤΗΤΑ_ΛΕΚΤΙΚΟ
+                                 </li>
+                             </ul>
+                         </td>
+                     </tr>
+                 </table>
+                </div>);
+        })
+        )   @*-- Tabstrip ---*@
+    </div>
+</body>
+</html>

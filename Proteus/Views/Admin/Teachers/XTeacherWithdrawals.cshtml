@@ -1,0 +1,77 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Αποχωρήσεις εκπαιδευτών";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 11px;
+    }
+</style>
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Αποχωρήσεις εκπαιδευτικών</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <span style="margin:5px 5px 5px 10px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Εκτύπωση", "XWithdrawalsPrint", "Admin", null, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+    <div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+
+        @(Html.Kendo().Grid<TeacherWithdrawalViewModel>()
+        .Name("grid")
+        .Navigatable()
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })
+        .Filterable()
+        .Groupable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .Scrollable(scr => scr.Height(420))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΙΕΚ, (IEnumerable<SYS_SCHOOLS>)ViewData["schools"], "SCHOOL_ID", "SCHOOL_NAME").Width(25)
+                .ClientFooterTemplate("Ολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.ForeignKey(f => f.ΣΧΟΛΙΚΟ_ΕΤΟΣ, (IEnumerable<SYS_SCHOOLYEARS>)ViewData["schoolyears"], "SY_ID", "SY_TEXT").Width(16);
+            columns.ForeignKey(f => f.TEACHER_ID, (IEnumerable<qryTEACHER_SELECTOR>)ViewData["teachers"], "TEACHER_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(40);
+            columns.Bound(c => c.ΗΜΕΡΟΜΗΝΙΑ).Width(16).Groupable(false);
+            columns.ForeignKey(f => f.ΑΙΤΙΟΛΟΓΙΑ, (IEnumerable<ΑΠΟΧΩΡΗΣΗ_ΑΙΤΙΕΣ>)ViewData["aities"], "ΑΠΟΧΩΡΗΣΗ_ΚΩΔΙΚΟΣ", "ΑΠΟΧΩΡΗΣΗ_ΑΙΤΙΑ").Width(58);
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(false)
+            .PageSize(60)
+            .ServerOperation(true)
+            .Model(model =>
+            {
+                model.Id(p => p.ΑΠΟΧΩΡΗΣΗ_ΚΩΔ);
+            })
+            .Read(read => read.Action("Apoxorisi_Read", "Admin"))
+            .Aggregates(a =>
+            {
+                a.Add(p => p.ΙΕΚ).Count();
+            })
+            //.Group(groups => groups.Add(p => p.ΙΕΚ))
+        )
+        )
+</div>
+
+<script>
+
+    function RefreshGrid(e) {
+        var grid = $("#grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+</script>
+

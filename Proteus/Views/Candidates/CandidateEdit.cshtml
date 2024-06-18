@@ -1,0 +1,793 @@
+﻿@model Proteus.Models.XmAitisiViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Στοιχεία αίτησης";
+    Layout = "~/Views/Shared/_LayoutMin.cshtml";
+}
+
+<link href="@Url.Content("~/Content/mvcNotify.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/mvcNotify.js")" type="text/javascript"></script>
+<script type="text/javascript">
+    //Set autoclear of messages. Don't put this into $(document).ready.
+    //mvcNotify.autoClearTimeout = 0; //don't autoclear any types
+    mvcNotify.autoClearTimeout = 10000; //Unit of milliseconds. Requires mvcNotify.typesToAutoClear to be set to something (default behavior).
+    mvcNotify.typesToConsoleLog = "all"; //Log all types to console.
+</script>
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style>
+        .k-textbox {
+            display: block;
+            width: 100%;
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.428571429;
+            color: #555555;
+            vertical-align: middle;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        }
+
+        .k-textbox:focus {
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+        }
+    </style>
+</head>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    <div class="page-header" style="margin:5px 60px 5px 60px">
+    </div>
+    <div class="container body-content" style="margin:20px 20px 10px 120px">
+        <fieldset>
+            <table class="col-md-12" style="border:solid;border-width:thin;margin:10px 20px 10px 20px">
+                <tr>
+                    <th style="background-color:#494949;padding-left:20px;padding-top:4px;padding-bottom:4px">
+                        <font style="font-family:'Segoe UI';font-size:medium;color:white;">Στοιχεία αίτησης</font>
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                            @Html.ActionLink("Επιστροφή", "Index", "Candidates", new { @class = "btn btn-warning", style = "font-size:14px" })
+                        </span>
+                        <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                            @Html.ActionLink("Εκτύπωση", "CandidateAitisiPrint", "Candidates", new { aitisiID = Model.ΑΙΤΗΣΗ_ΚΩΔ }, new { @class = "btn btn-info", style = "font-size:14px", target = "_blank" })
+                        </span>
+                        <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:16px">
+                            <input style="font-family:'Segoe UI';font-size:14px" type="submit" value="Αποθήκευση" class="btn btn-primary" />
+                        </span>
+                        <span style="margin:5px 5px 5px 10px;float:left;font-family:'Segoe UI';font-size:16px">
+                            <font style="font-family:'Segoe UI';font-size:medium;color:dimgray;font-style:italic;color:#800000">Τα πεδία με * είναι υποχρεωτικά. Επιλέγετε μέχρι τρεις ειδικότητες.</font>
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="body-content">
+                        @(Html.Kendo().TabStrip()
+                        .Name("StudentTabStrip")
+                        .Items(items =>
+                        {
+                            items.Add()
+                            .Text("Προσωπικά στοιχεία")
+                            .Selected(true)
+                            .ContentHtmlAttributes(new { style = "min-height: 420px" })
+                            .Content(@<text>
+                            <p></p>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΑΙΤΗΣΗ_ΠΡΩΤΟΚΟΛΛΟ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-5" style="margin-bottom:5px">
+                                            <label class="form-control" style="max-height:20px; background-color:#EEE">@Html.DisplayFor(model => model.ΑΙΤΗΣΗ_ΠΡΩΤΟΚΟΛΛΟ)</label>                                            @Html.ValidationMessageFor(model => model.ΑΙΤΗΣΗ_ΠΡΩΤΟΚΟΛΛΟ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΗΜΕΡΟΜΗΝΙΑ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-5" style="margin-bottom:5px">
+                                            <label class="form-control" style="max-height:20px; background-color:#EEE">@Html.DisplayFor(model => model.ΗΜΕΡΟΜΗΝΙΑ)</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΕΠΩΝΥΜΟ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΕΠΩΝΥΜΟ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΕΠΩΝΥΜΟ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΟΝΟΜΑ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΟΝΟΜΑ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΟΝΟΜΑ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΠΑΤΡΩΝΥΜΟ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΠΑΤΡΩΝΥΜΟ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΠΑΤΡΩΝΥΜΟ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΜΗΤΡΩΝΥΜΟ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΜΗΤΡΩΝΥΜΟ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΜΗΤΡΩΝΥΜΟ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΦΥΛΟ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΦΥΛΟ)
+                                            .Name("ΦΥΛΟ")
+                                            .DataTextField("GENDER")
+                                            .DataValueField("GENDER_ID")
+                                            .HtmlAttributes(new { style = "width:170px;" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(true)
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetGenders", "Candidates"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΦΥΛΟ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΑΦΜ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:415px">
+                                            <label class="form-control" style="max-height:20px; background-color:#EEE">@Html.DisplayFor(model => model.ΑΦΜ)</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΑΜΚΑ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΑΜΚΑ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΑΜΚΑ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            </text>);
+                            items.Add()
+                            .Text("Στοιχεία σπουδών")
+                            .ContentHtmlAttributes(new { style = "min-height: 440px" })
+                            .Content(@<text>
+                            <p></p>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΗΜΝΙΑ_ΑΠΟΦΟΙΤΗΣΗ, new { @class = "control-label col-md-8" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΗΜΝΙΑ_ΑΠΟΦΟΙΤΗΣΗ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΗΜΝΙΑ_ΑΠΟΦΟΙΤΗΣΗ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΑΠΟΛΥΤΗΡΙΟ_ΚΩΔ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:440px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΑΠΟΛΥΤΗΡΙΟ_ΚΩΔ)
+                                            .Name("ΑΠΟΛΥΤΗΡΙΟ_ΚΩΔ")
+                                            .DataTextField("ΑΠΟΛΥΤΗΡΙΟ_ΛΕΚΤΙΚΟ")
+                                            .DataValueField("ΑΠΟΛΥΤΗΡΙΟ_ΚΩΔΙΚΟΣ")
+                                            .HtmlAttributes(new { style = "width:320px;" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(true)
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetApolytiria", "Candidates"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΑΠΟΛΥΤΗΡΙΟ_ΚΩΔ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΒΑΘΜΟΣ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;max-width:100px">
+                                            @Html.EditorFor(model => model.ΒΑΘΜΟΣ, new { htmlAttributes = new { @class = "form-control", style="max-height:24px" } })
+                                            @Html.ValidationMessageFor(model => model.ΒΑΘΜΟΣ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΙΕΚ1, new { @class = "control-label col-md-8" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:440px;">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΙΕΚ1)
+                                            .Name("ΙΕΚ1")
+                                            .DataTextField("SCHOOL_NAME")
+                                            .DataValueField("SCHOOL_ID")
+                                            .HtmlAttributes(new { style = "width:320px;" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(true)
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetSchools", "Candidates"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΙΕΚ1, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΕΙΔΙΚΟΤΗΤΑ1, new { @class = "control-label col-md-8" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΕΙΔΙΚΟΤΗΤΑ1)
+                                            .Name("ΕΙΔΙΚΟΤΗΤΑ1")
+                                            .DataTextField("EIDIKOTITA_TERM")
+                                            .DataValueField("EIDIKOTITA_ID")
+                                            .HtmlAttributes(new { style = "width:560px;font-size:12px" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΙΕΚ1")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetEidikotitesIek1", "Candidates").Data("filterIek1"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΕΙΔΙΚΟΤΗΤΑ1, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-2" style="margin-bottom:5px">
+                                            @(Html.Kendo().DropDownListFor(model => model.TERM1)
+                                            .Name("TERM1")
+                                            .DataTextField("TERM")
+                                            .DataValueField("TERM_ID")
+                                            .HtmlAttributes(new { style = "width:60px;font-size:12px" })
+                                            .OptionLabel("Εξάμ.")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΕΙΔΙΚΟΤΗΤΑ1")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetFilteredTerms", "Candidates").Data("filterTerm1"); }).ServerFiltering(true); })
+                                            )
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΕΙΔΙΚΟΤΗΤΑ2, new { @class = "control-label col-md-8" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:600px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΕΙΔΙΚΟΤΗΤΑ2)
+                                            .Name("ΕΙΔΙΚΟΤΗΤΑ2")
+                                            .DataTextField("EIDIKOTITA_TERM")
+                                            .DataValueField("EIDIKOTITA_ID")
+                                            .HtmlAttributes(new { style = "width:560px;font-size:12px" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΙΕΚ1")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetEidikotitesIek1", "Candidates").Data("filterIek1"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΕΙΔΙΚΟΤΗΤΑ2, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-2" style="margin-bottom:5px">
+                                            @(Html.Kendo().DropDownListFor(model => model.TERM2)
+                                            .Name("TERM2")
+                                            .DataTextField("TERM")
+                                            .DataValueField("TERM_ID")
+                                            .HtmlAttributes(new { style = "width:60px;font-size:12px" })
+                                            .OptionLabel("Εξάμ.")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΕΙΔΙΚΟΤΗΤΑ2")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetFilteredTerms", "Candidates").Data("filterTerm2"); }).ServerFiltering(true); })
+                                            )
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΕΙΔΙΚΟΤΗΤΑ3, new { @class = "control-label col-md-8" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:15px;min-width:600px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΕΙΔΙΚΟΤΗΤΑ3)
+                                            .Name("ΕΙΔΙΚΟΤΗΤΑ3")
+                                            .DataTextField("EIDIKOTITA_TERM")
+                                            .DataValueField("EIDIKOTITA_ID")
+                                            .HtmlAttributes(new { style = "width:560px;font-size:12px" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΙΕΚ1")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetEidikotitesIek1", "Candidates").Data("filterIek1"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΕΙΔΙΚΟΤΗΤΑ3, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-2" style="margin-bottom:5px">
+                                            @(Html.Kendo().DropDownListFor(model => model.TERM3)
+                                            .Name("TERM3")
+                                            .DataTextField("TERM")
+                                            .DataValueField("TERM_ID")
+                                            .HtmlAttributes(new { style = "width:60px;font-size:12px" })
+                                            .OptionLabel("Εξάμ.")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΕΙΔΙΚΟΤΗΤΑ3")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetFilteredTerms", "Candidates").Data("filterTerm3"); }).ServerFiltering(true); })
+                                            )
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΙΕΚ2, new { @class = "control-label col-md-8" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:440px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΙΕΚ2)
+                                            .Name("ΙΕΚ2")
+                                            .DataTextField("SCHOOL_NAME")
+                                            .DataValueField("SCHOOL_ID")
+                                            .HtmlAttributes(new { style = "width:320px;" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(true)
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetSchools", "Candidates"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΙΕΚ2, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΕΙΔΙΚΟΤΗΤΑ4, new { @class = "control-label col-md-8" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:600px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΕΙΔΙΚΟΤΗΤΑ4)
+                                            .Name("ΕΙΔΙΚΟΤΗΤΑ4")
+                                            .DataTextField("EIDIKOTITA_TERM")
+                                            .DataValueField("EIDIKOTITA_ID")
+                                            .HtmlAttributes(new { style = "width:560px;font-size:12px" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΙΕΚ2")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetEidikotitesIek2", "Candidates").Data("filterIek2"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΕΙΔΙΚΟΤΗΤΑ4, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-2" style="margin-bottom:5px">
+                                            @(Html.Kendo().DropDownListFor(model => model.TERM4)
+                                            .Name("TERM4")
+                                            .DataTextField("TERM")
+                                            .DataValueField("TERM_ID")
+                                            .HtmlAttributes(new { style = "width:60px;font-size:12px" })
+                                            .OptionLabel("Εξάμ.")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΕΙΔΙΚΟΤΗΤΑ4")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetFilteredTerms", "Candidates").Data("filterTerm4"); }).ServerFiltering(true); })
+                                            )
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΕΙΔΙΚΟΤΗΤΑ5, new { @class = "control-label col-md-8" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:600px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΕΙΔΙΚΟΤΗΤΑ5)
+                                            .Name("ΕΙΔΙΚΟΤΗΤΑ5")
+                                            .DataTextField("EIDIKOTITA_TERM")
+                                            .DataValueField("EIDIKOTITA_ID")
+                                            .HtmlAttributes(new { style = "width:560px;font-size:12px" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΙΕΚ2")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetEidikotitesIek2", "Candidates").Data("filterIek2"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΕΙΔΙΚΟΤΗΤΑ5, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-2" style="margin-bottom:5px">
+                                            @(Html.Kendo().DropDownListFor(model => model.TERM5)
+                                            .Name("TERM5")
+                                            .DataTextField("TERM")
+                                            .DataValueField("TERM_ID")
+                                            .HtmlAttributes(new { style = "width:60px;font-size:12px" })
+                                            .OptionLabel("Εξάμ.")
+                                            .AutoBind(false)
+                                            .Enable(false)
+                                            .CascadeFrom("ΕΙΔΙΚΟΤΗΤΑ5")
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetFilteredTerms", "Candidates").Data("filterTerm5"); }).ServerFiltering(true); })
+                                            )
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            </text>);
+                            items.Add()
+                            .Text("Ταυτότητα-Επικοινωνία")
+                            .ContentHtmlAttributes(new { style = "min-height: 440px" })
+                            .Content(@<text>
+                             <p></p>
+                            <table>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:5px;min-width:200px">
+                                            @Html.LabelFor(model => model.ΕΘΝΙΚΟΤΗΤΑ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:5px;min-width:440px">
+                                            @(Html.Kendo().DropDownListFor(model => model.ΕΘΝΙΚΟΤΗΤΑ)
+                                            .Name("ΕΘΝΙΚΟΤΗΤΑ")
+                                            .DataTextField("NATIONALITY_TEXT")
+                                            .DataValueField("NATIONALITY_ID")
+                                            .HtmlAttributes(new { style = "width:440px;" })
+                                            .OptionLabel("---Επιλογή---")
+                                            .AutoBind(true)
+                                            .DataSource(source => { source.Read(read => { read.Action("XmGetNationalities", "Candidates"); }).ServerFiltering(true); })
+                                            )
+                                            @Html.ValidationMessageFor(model => model.ΕΘΝΙΚΟΤΗΤΑ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΑΔΤ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΑΔΤ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΑΔΤ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΑΔΤ_ΑΡΧΗ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΑΔΤ_ΑΡΧΗ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΑΔΤ_ΑΡΧΗ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΑΔΤ_ΗΜΝΙΑ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΑΔΤ_ΗΜΝΙΑ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΑΔΤ_ΗΜΝΙΑ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΔΙΑΒΑΤΗΡΙΟ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΔΙΑΒΑΤΗΡΙΟ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΔΙΑΒΑΤΗΡΙΟ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΔΗΜΟΣ_ΕΓΓΡΑΦΗΣ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΔΗΜΟΣ_ΕΓΓΡΑΦΗΣ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΔΗΜΟΣ_ΕΓΓΡΑΦΗΣ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΑΡ_ΔΗΜΟΤΟΛΟΓΙΟ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΑΡ_ΔΗΜΟΤΟΛΟΓΙΟ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΑΡ_ΔΗΜΟΤΟΛΟΓΙΟ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΑΜ_ΑΡΡΕΝΩΝ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΑΜ_ΑΡΡΕΝΩΝ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΑΜ_ΑΡΡΕΝΩΝ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΚΑΤΟΙΚΙΑ_ΠΟΛΗ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΚΑΤΟΙΚΙΑ_ΠΟΛΗ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΚΑΤΟΙΚΙΑ_ΠΟΛΗ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΚΑΤΟΙΚΙΑ_ΔΝΣΗ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΚΑΤΟΙΚΙΑ_ΔΝΣΗ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΚΑΤΟΙΚΙΑ_ΔΝΣΗ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.ΤΗΛΕΦΩΝΟ, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.ΤΗΛΕΦΩΝΟ, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.ΤΗΛΕΦΩΝΟ, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-6" style="margin-bottom:8px;min-width:250px">
+                                            @Html.LabelFor(model => model.EMAIL, new { @class = "control-label col-md-6" })
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="col-md-8" style="margin-bottom:8px;min-width:440px">
+                                            @Html.EditorFor(model => model.EMAIL, new { htmlAttributes = new { @class = "form-control" } })
+                                            @Html.ValidationMessageFor(model => model.EMAIL, "", new { @class = "text-danger" })
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                             <p></p>
+                            </text>);
+                        })
+)       @*--- End of Tabstrip ---*@
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </fieldset>
+    </div>
+}   @* ---  End of BeginForm ----------*@
+
+
+
+<script type="text/javascript">
+    
+    function filterIek1() {
+        var iek1 = 0;
+        item1 = $("#ΙΕΚ1").data("kendoDropDownList").value();
+
+        if (item1) iek1 = item1;
+        return {
+            iek1: iek1
+        };
+    }
+
+    function filterIek2() {
+        var iek2 = 0;
+        item2 = $("#ΙΕΚ2").data("kendoDropDownList").value();
+
+        if (item2) iek2 = item2;
+        return {
+            iek2: iek2
+        };
+    }
+
+    function filterTerm1() {
+        var iek = 0;
+        var eidikotitaId = 0;
+        item1 = $("#ΙΕΚ1").data("kendoDropDownList").value();
+        item2 = $("#ΕΙΔΙΚΟΤΗΤΑ1").data("kendoDropDownList").value();
+
+        if (item1 && item2) {
+            iek = item1;
+            eidikotitaID = item2;
+        }
+        return {
+            iek: item1,
+            eidikotitaId: item2
+        };
+    }
+
+    function filterTerm2() {
+        var iek = 0;
+        var eidikotitaId = 0;
+        item1 = $("#ΙΕΚ1").data("kendoDropDownList").value();
+        item2 = $("#ΕΙΔΙΚΟΤΗΤΑ2").data("kendoDropDownList").value();
+
+        if (item1 && item2) {
+            iek = item1;
+            eidikotitaID = item2;
+        }
+        return {
+            iek: item1,
+            eidikotitaId: item2
+        };
+    }
+
+    function filterTerm3() {
+        var iek = 0;
+        var eidikotitaId = 0;
+        item1 = $("#ΙΕΚ1").data("kendoDropDownList").value();
+        item2 = $("#ΕΙΔΙΚΟΤΗΤΑ3").data("kendoDropDownList").value();
+
+        if (item1 && item2) {
+            iek = item1;
+            eidikotitaID = item2;
+        }
+        return {
+            iek: item1,
+            eidikotitaId: item2
+        };
+    }
+
+    function filterTerm4() {
+        var iek = 0;
+        var eidikotitaId = 0;
+        item1 = $("#ΙΕΚ2").data("kendoDropDownList").value();
+        item2 = $("#ΕΙΔΙΚΟΤΗΤΑ4").data("kendoDropDownList").value();
+
+        if (item1 && item2) {
+            iek = item1;
+            eidikotitaID = item2;
+        }
+        return {
+            iek: item1,
+            eidikotitaId: item2
+        };
+    }
+
+    function filterTerm5() {
+        var iek = 0;
+        var eidikotitaId = 0;
+        item1 = $("#ΙΕΚ2").data("kendoDropDownList").value();
+        item2 = $("#ΕΙΔΙΚΟΤΗΤΑ5").data("kendoDropDownList").value();
+
+        if (item1 && item2) {
+            iek = item1;
+            eidikotitaID = item2;
+        }
+        return {
+            iek: item1,
+            eidikotitaId: item2
+        };
+    }
+
+</script>

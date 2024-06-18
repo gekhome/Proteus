@@ -1,0 +1,169 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Ωρολόγια προγράμματα";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 12px;
+    }
+</style>
+
+
+    <div class="page-header" style="margin:5px 30px 5px 30px">
+        <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+            <font style="color:#494949;float:left;font-family:'Segoe UI'">Ωρολόγια Προγράμματα</font>
+        </span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+        <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+        <span style="margin:5px 5px 5px 10px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Εκτύπωση", "XEidikotitesLessonsPrint", "Admin", null, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })</span>
+    </div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+
+    @(Html.Kendo().Grid<SYS_EIDIKOTITES_IEKViewModel>()
+    .Name("Master")
+    .Columns(columns =>
+    {
+        columns.Bound(c => c.EIDIKOTITA_TEXT).Width(80);
+        columns.Bound(c => c.EIDIKOTITA_CODE).Width(20);
+    })
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .Selectable()
+    .Filterable()
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Scrollable(scr => scr.Height(200))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.EIDIKOTITA_ID);
+        })
+        .Read(read => read.Action("EidikotitaKatartisi_Read", "Admin"))
+    )
+    .Events(events => events.Change("change"))
+    )
+
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+
+    @(Html.Kendo().Grid<LessonsIekViewModel>()
+    .Name("Child")
+    .AutoBind(false)
+    .HtmlAttributes(new { style = "display: block;font-size:11px" })
+    .Navigatable()
+    .Groupable()
+    .Filterable()
+    .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(10))
+    .Scrollable(scr => scr.Height(360))
+    .Columns(columns =>
+    {
+        columns.Bound(c => c.LESSON_TEXT).Width(62);
+        columns.ForeignKey(f => f.LESSON_TERM, (IEnumerable<SYS_TERM>)ViewData["terms"], "TERM_ID", "TERM").Width(14);
+        columns.ForeignKey(f => f.LESSON_TYPE, (IEnumerable<LESSON_TYPES>)ViewData["lessontypes"], "LESSON_TYPE_ID", "LESSON_TYPE_TEXT").Width(14);
+        columns.Bound(c => c.LESSON_HOURS_WEEK).Width(16);
+        columns.Bound(c => c.LESSON_HOURS).Width(14);
+        columns.Command(command => { command.Edit(); command.Destroy(); }).Width(34);
+    })
+    .ToolBar(toolBar =>
+    {
+        toolBar.Create();
+    })
+    .DataSource(ds => ds
+        .Ajax()
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.LESSON_ID);
+            model.Field(p => p.LESSON_TERM).DefaultValue(1);
+            model.Field(p => p.LESSON_TYPE).DefaultValue(1);
+            model.Field(p => p.LESSON_HOURS).Editable(false);
+        })
+        .Group(groups => groups.Add(p => p.LESSON_TERM))
+        .Create(create => create.Action("Lesson_Create", "Admin").Data("data"))
+        .Read(read => read.Action("Lesson_Read", "Admin").Data("data"))
+        .Update(update => update.Action("Lesson_Update", "Admin").Data("data"))
+        .Destroy(destroy => destroy.Action("Lesson_Destroy", "Admin"))
+        .Events(events => events.Error("error_handler"))                
+        )
+    )
+</div>
+
+
+<script type="text/javascript">
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var eidikotitaID = dataItem.EIDIKOTITA_ID;
+
+        $("#Child").data("kendoGrid").dataSource.read({ eidikotitaId: eidikotitaID });
+        $("#Child").css("display", "block");
+    }
+
+    function data() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            return { eidikotitaId: dataItem.EIDIKOTITA_ID };
+        }
+        else {
+            return { eidikotitaId: 0 };
+        }
+    }
+
+    function onSave(e) {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var eidikotitaId = dataItem.EIDIKOTITA_ID;
+
+        //alert("onSave: " + eidikotitaId);
+
+        $("#Child").data("kendoGrid").dataSource.read({ eidikotitaID: eidikotitaId });
+        $("#Child").css("display", "block");
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#Child").data("kendoGrid");
+        var dataItem = $("#Master").dataItem($("#Master").select());
+        var eidikotitaID = 0;
+        if (dataItem) {
+            eidikotitaID = dataItem.EIDIKOTITA_ID;
+        }
+        grid.dataSource.read({ eidikotitaId: eidikotitaID });
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        $("#Child").data("kendoGrid").dataSource.read();
+    }
+
+</script>
+

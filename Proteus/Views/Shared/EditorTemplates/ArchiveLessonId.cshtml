@@ -1,0 +1,20 @@
+﻿@using System.Collections
+@using Proteus.Models
+@using Proteus.DAL
+@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(true)
+    .DataValueField("LESSON_ID")
+    .DataTextField("LESSON_DESC")
+    .OptionLabel("Επιλογή μαθήματος...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("FilteredLessonsRead", "Archive").Data("filterLessons");
+        })
+        .ServerFiltering(true);
+    })
+)
+@Html.ValidationMessageFor(m => m)

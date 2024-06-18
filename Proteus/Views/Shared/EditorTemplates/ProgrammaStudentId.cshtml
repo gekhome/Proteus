@@ -1,0 +1,19 @@
+﻿@using System.Collections
+@using Proteus.Models
+@using Proteus.DAL
+@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(true)
+    .DataValueField("STUDENT_ID")
+    .DataTextField("ΟΝΟΜΑΤΕΠΩΝΥΜΟ")
+    .OptionLabel("Επιλογή σπουδαστή...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("TmimaStudentsRead", "Programma").Data("filterStudents");
+        }).ServerFiltering(true);
+    })
+)
+@Html.ValidationMessageFor(m => m)

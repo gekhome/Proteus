@@ -1,0 +1,21 @@
+﻿@using System.Collections
+@using Proteus.Models
+@using Proteus.DAL
+@model string
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(false)
+    .DataValueField("LESSON_TEXT")
+    .DataTextField("LESSON_TEXT")
+    .OptionLabel("Επιλογή μαθήματος...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("ApallagiLessonsRead", "School").Data("filterLessons");
+        })
+        .ServerFiltering(true);
+    })
+    .CascadeFrom("ΕΞΑΜΗΝΟ_ΚΩΔ")
+)
+@Html.ValidationMessageFor(m => m)

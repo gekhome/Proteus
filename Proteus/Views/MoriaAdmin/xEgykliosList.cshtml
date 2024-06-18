@@ -1,0 +1,96 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Εγκύκλιοι";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header" style="margin:5px 60px 5px 60px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Διαχείριση εγκυκλίων εισαγωγής σπουδαστών</font>
+    </span>
+    <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 60px 5px 60px">
+    <div class="row">
+
+        @(Html.Kendo().Grid<XmEgykliosViewModel>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΣΧΟΛΙΚΟ_ΕΤΟΣ, (IEnumerable<SYS_SCHOOLYEARS>)ViewData["SchoolYears"], "SY_ID", "SY_TEXT").Width(20);
+            columns.Bound(m => m.ΕΓΚΥΚΛΙΟΣ_ΑΠ).Width(30);
+            columns.Bound(m => m.ΗΜΝΙΑ_ΕΝΑΡΞΗ).Width(24);
+            columns.Bound(m => m.ΗΜΝΙΑ_ΛΗΞΗ).Width(24);
+            columns.ForeignKey(f => f.ΚΑΤΑΣΤΑΣΗ, (IEnumerable<ΧΜ_ΕΓΚΥΚΛΙΟΣ_ΚΑΘΕΣΤΩΣ>)ViewData["Status"], "STATUS_ID", "STATUS").Width(20);
+            columns.Bound(m => m.ΕΝΕΡΓΗ).Width(16).ClientTemplate("<input type='checkbox' #= ΕΝΕΡΓΗ ? checked='checked' : '' # class='chkbx' ></input>").Filterable(false);
+            columns.Bound(m => m.ΔΙΑΧΕΙΡΙΣΗ).Width(16).ClientTemplate("<input type='checkbox' #= ΔΙΑΧΕΙΡΙΣΗ ? checked='checked' : '' # class='chkbx' ></input>").Filterable(false);           
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(38);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .Filterable()
+        .Navigatable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .HtmlAttributes(new { style = "display: block;font-size:14px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(360))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+        .Ajax()
+        .PageSize(40)
+        .ServerOperation(false)
+        .Batch(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΕΓΚΥΚΛΙΟΣ_ΚΩΔ);
+            model.Field(p => p.ΣΧΟΛΙΚΟ_ΕΤΟΣ).DefaultValue(1);
+            model.Field(p => p.ΚΑΤΑΣΤΑΣΗ).DefaultValue(1);
+        })
+        .Create(create => create.Action("Egyklios_Create", "MoriaAdmin"))
+        .Read(read => read.Action("Egyklios_Read", "MoriaAdmin"))
+        .Update(update => update.Action("Egyklios_Update", "MoriaAdmin"))
+        .Destroy(destroy => destroy.Action("Egyklios_Destroy", "MoriaAdmin"))
+        .Events(events => events.Error("error_handler"))        
+        ) @* datasource*@
+        )
+
+        </div>
+</div>
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+            RefreshGrid(e);
+        }
+    }
+
+</script>
+
+
+
+

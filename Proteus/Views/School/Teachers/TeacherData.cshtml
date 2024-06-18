@@ -1,0 +1,290 @@
+﻿@model IEnumerable<Proteus.Models.TeacherGridViewModel>
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Στοιχεία εκπαιδευτών";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 12px;
+    }
+</style>
+
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Στοιχεία και απασχόληση εκπαιδευτών</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+        @(Html.Kendo().Grid(Model)
+        .Name("Master")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΑΦΜ).Width(14).Groupable(false);
+            columns.Bound(c => c.ΕΠΩΝΥΜΟ).Width(24).Groupable(false)
+                .ClientFooterTemplate("Ολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(c => c.ΟΝΟΜΑ).Width(20).Groupable(false);
+            columns.ForeignKey(f => f.ΕΙΔΙΚΟΤΗΤΑ, (IEnumerable<VD_EIDIKOTITES>)ViewData["eidikotites"], "EIDIKOTITA_ID", "EIDIKOTITA_DESC").Width(44).EditorTemplateName("TeacherEidikotitaId");
+            columns.Bound(c => c.ΜΙΣΘΟΔΟΣΙΑ_ΚΩΔ).Width(14).Groupable(false).Filterable(false);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(32);
+            columns.Template(
+            @<text></text>)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("TeacherEdit", "School") + "?teacherId=#=TEACHER_ID#' target=_blank><span class=\"k-icon k-edit\"></span>Καρτέλα</a>"
+            ).Width(16);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .Groupable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine))
+        .Navigatable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .Selectable()
+        .Filterable()
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(300))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(60)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.TEACHER_ID);
+                model.Field(p => p.ΕΙΔΙΚΟΤΗΤΑ).DefaultValue(0);
+            })
+            .Create(create => create.Action("Teacher_Create", "School"))
+            .Read(read => read.Action("Teacher_Read", "School"))
+            .Update(update => update.Action("Teacher_Update", "School"))
+            .Destroy(destroy => destroy.Action("Teacher_Destroy", "School"))
+            .Aggregates(a =>
+            {
+                a.Add(p => p.ΕΠΩΝΥΜΟ).Count();
+            })
+            .Events(events => events.Error("error_handler1"))
+        )
+        .Events(events => events.Change("change"))
+        )
+</div>
+
+
+<div class="body-content" style="margin:5px 30px 5px 30px;font-size:small">
+
+    @(Html.Kendo().PanelBar()
+    .Name("Panel1")
+    .Items(items =>
+    {
+        items.Add()
+        .Text("Περίοδοι απασχόλησης")
+        .Selected(false)
+        .Expanded(true)
+        .Content(
+        @<text>
+
+        @(Html.Kendo().Grid<TeacherPeriodsViewModel>()
+        .Name("Child")
+        .AutoBind(false)
+        .HtmlAttributes(new { style = "display: block;font-size:13px" })
+        .Navigatable()
+        .Filterable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(200))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΠΕΡΙΟΔΟΣ_ΚΩΔ, (IEnumerable<ΠΕΡΙΟΔΟΙ>)ViewData["periodoi"], "PERIOD_ID", "ΠΕΡΙΟΔΟΣ").Width(14);
+            columns.Bound(c => c.ΗΜΝΙΑ_ΠΡΟΣΛΗΨΗΣ).Width(20);
+            columns.Bound(c => c.ΑΠΟΦΑΣΗ).Width(30);
+            columns.Bound(c => c.ΑΔΑ).Width(30);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(36);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .PageSize(40)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΕΠ_ΚΩΔ);
+                model.Field(p => p.ΠΕΡΙΟΔΟΣ_ΚΩΔ).DefaultValue(1);
+            })
+            .Create(create => create.Action("TeacherPeriod_Create", "School").Data("data"))
+            .Read(read => read.Action("TeacherPeriod_Read", "School").Data("data"))
+            .Update(update => update.Action("TeacherPeriod_Update", "School").Data("data"))
+            .Destroy("TeacherPeriod_Destroy", "School")
+            .Events(events => events.Error("error_handler2"))
+        )
+        .Events(e => e.SaveChanges("onSave"))
+        )
+        </text>);
+    })
+    )
+
+</div>
+
+<script type="text/javascript">
+
+    var options = null;
+
+    function RefreshGrid(e) {
+        var grid = $("#Master").data("kendoGrid");
+        grid.dataSource.read();
+
+    }
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var teacherID = dataItem.TEACHER_ID;
+
+        $("#Child").data("kendoGrid").dataSource.read({ teacherId: teacherID });
+        $("#Child").css("display", "block");
+
+        @*// 1st step: save grid state
+        var grid = $("#Master").data("kendoGrid");
+        var dataSource = grid.dataSource;
+
+        var state = {
+            //columns: grid.columns,
+            page: dataSource.page(),
+            pageSize: dataSource.pageSize(),
+            sort: dataSource.sort(),
+            filter: dataSource.filter(),
+            group: dataSource.group()
+        };
+
+        $.ajax({
+            url: '@Url.Action("Save", "Home")',
+            data: { data: JSON.stringify(state) }
+        });
+
+        //alert("state:" + JSON.stringify(state));  // verifies
+
+        // 2nd step: persist selected row
+        var grid = $("#Master").data("kendoGrid");
+        //alert("local storage: " + JSON.stringify(dataItem));  // verifies
+        localStorage.setItem("selected-row", JSON.stringify(dataItem));*@
+    }
+
+    function data() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            return { teacherId: dataItem.TEACHER_ID };
+        }
+        else {
+            return { teacherId: 0 };
+        }
+    }
+
+    function Restore(e) {
+        var grid = $("#Master").data("kendoGrid");
+        var dataSource = grid.dataSource;
+        //grid.dataSource.read(); // refresh grid - so button Refresh not required
+
+        $.ajax({
+            url: '@Url.Action("Load", "Home")',
+            success: function (state) {
+                state = JSON.parse(state);
+                options = grid.options;
+
+                //options.columns = state.columns;
+                options.dataSource.page = state.page;
+                options.dataSource.pageSize = state.pageSize;
+                options.dataSource.sort = state.sort;
+                options.dataSource.filter = state.filter;
+                options.dataSource.group = state.group;
+
+                grid.destroy();
+                $("#Master").empty().kendoGrid(options);
+
+                //alert("state:" + JSON.stringify(options.dataSource.page));    // verifies
+            }
+        });
+
+        grid.wrapper.height(480);
+        grid.resize();
+    }
+
+    function Reselect(e) {
+        var grid = $("#Master").data("kendoGrid");
+        var selectedRow = localStorage.getItem("selected-row");
+        var rowToSelect = JSON.parse(selectedRow);
+        var lineToSelect = null;
+
+        var data = grid.dataSource.data();
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].TEACHER_ID == rowToSelect.TEACHER_ID) {
+                var select = grid.tbody.find('tr[data-uid="' + data[i].uid + '"]');
+                //alert("var select: " + data[i].TEACHER_ID);
+                grid.select(select);
+            }
+        }
+    }
+
+    function onSave(e) {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var teacherID = 0;
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            teacherID = dataItem.TEACHER_ID;
+        }
+
+        $("#Child").data("kendoGrid").dataSource.read({ teacherId: teacherID });
+        $("#Child").css("display", "block");
+    }
+
+    function error_handler1(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        $("#Master").data("kendoGrid").dataSource.read();
+    }
+
+    function error_handler2(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        $("#Child").data("kendoGrid").dataSource.read();
+    }
+
+</script>
+

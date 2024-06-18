@@ -1,0 +1,147 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    /*padding-left: 15px;
+    padding-right: 15px;*/
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select {
+    max-width:520px;
+}
+
+/* styles for validation helpers */
+.field-validation-error {
+    color: #b94a48;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+input.input-validation-error {
+    border: 1px solid #b94a48;
+}
+
+input[type="checkbox"].input-validation-error {
+    border: 0 none;
+}
+
+.validation-summary-errors {
+    color: #b94a48;
+}
+
+.validation-summary-valid {
+    display: none;
+}
+
+/* Notification styles
+-----------------------------------------------------------*/
+/*.notificationbox
+{
+    z-index: 500;
+    padding: 12px 10px 10px 30px;
+    margin-top: 10px;
+    box-shadow: 5px 5px 10px #000;
+    display: none;
+    width: 550px;
+}
+ 
+.nb-success
+{
+color: #060;
+    background: #cfc url(images/ok.gif) no-repeat 8px 12px;
+}
+ 
+.nb-error
+{
+color: #c00;
+    background: #fcc url(images/fail.gif) no-repeat 8px 12px;
+}
+ 
+.nb-warning
+{
+color: #c60;
+    background: #ffc url(images/warn.gif) no-repeat 8px 12px;
+}*/
+    .smartShortText {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        display: block;
+        -o-text-overflow: ellipsis;
+    }
+        .tooltip1 {
+        position: relative;
+        display: inline-block;
+    }
+
+    .tooltip1 .tooltip1text {
+        visibility: hidden;
+        width: 220px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0px;
+        position: absolute;
+        z-index: 1;
+        top: 140%;
+        left: 50%;
+        margin-left: -80px;
+    }
+
+    .tooltip1 .tooltip1text::after {
+        content: "";
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent black transparent;
+    }
+
+    .tooltip1:hover .tooltip1text {
+        visibility: visible;
+    }
+
+    .tooltip2 {
+        position: relative;
+        display: inline-block;
+    }
+
+    .tooltip2 .tooltip2text {
+        visibility: hidden;
+        width: 220px;
+        background-color: #666666;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0px;
+        position: absolute;
+        z-index: 1;
+        top: 140%;
+        left: 50%;
+        margin-left: -80px;
+    }
+
+    .tooltip2 .tooltip2text::after {
+        content: "";
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent #666666 transparent;
+    }
+
+    .tooltip2:hover .tooltip2text {
+        visibility: visible;
+    }

@@ -1,0 +1,78 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Περίοδοι";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid .k-alt {
+        background-color: #e9e9e9; /* specify the alternate background-color */
+    }
+</style>
+
+    @Html.AntiForgeryToken()
+    <div class="page-header" style="margin:5px 30px 5px 30px">
+        <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+            <font style="color:#494949;float:left;font-family:'Segoe UI'">Χρονικές περίοδοι εξαμήνων</font>
+        </span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+            @Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })
+        </span>
+        <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+    </div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+
+    @(Html.Kendo().Grid<PeriodosViewModel>()
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(m => m.ΠΕΡΙΟΔΟΣ).Groupable(false).Width(10);
+        columns.ForeignKey(f => f.ΧΕ_ΚΩΔ, (IEnumerable<ΧΕ>)ViewData["xe"], "ΧΕ_ΚΩΔ", "ΧΕ_ΛΕΚΤΙΚΟ").Width(14);
+        columns.ForeignKey(f => f.ΣΧΟΛΙΚΟ_ΕΤΟΣ, (IEnumerable<SYS_SCHOOLYEARS>)ViewData["schoolyears"], "SY_ID", "SY_TEXT").Width(14);
+        columns.Bound(m => m.ΗΜΝΙΑ_ΕΝΑΡΞΗΣ).Width(16);
+        columns.Bound(m => m.ΗΜΝΙΑ_ΛΗΞΗΣ).Width(14);
+        columns.Bound(m => m.ΔΙΟΙΚΗΤΗΣ).Width(26);
+        columns.ForeignKey(f => f.ΔΙΟΙΚΗΤΗΣ_ΦΥΛΟ, (IEnumerable<SYS_GENDERS>)ViewData["genders"], "GENDER_ID", "GENDER").Groupable(false).Width(12);
+    })
+        .HtmlAttributes(new { style="font-size:14px" })
+        .Navigatable()
+        .Filterable()
+        .Groupable()
+        .Resizable(resize => resize.Columns(true))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(440))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+        .Ajax()
+        .Batch(true)
+        .PageSize(40)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.PERIOD_ID);
+            model.Field(p => p.ΧΕ_ΚΩΔ).DefaultValue(1);
+            model.Field(p => p.ΣΧΟΛΙΚΟ_ΕΤΟΣ).DefaultValue(1);
+            model.Field(p => p.ΔΙΟΙΚΗΤΗΣ_ΦΥΛΟ).DefaultValue(1);
+        })
+        .Read(read => read.Action("Periodos_Read", "Tools"))
+
+        ) @* datasource*@
+    )
+
+</div>
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+</script>
+

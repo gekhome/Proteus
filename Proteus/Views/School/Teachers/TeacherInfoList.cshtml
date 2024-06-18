@@ -1,0 +1,124 @@
+﻿@model TeacherInfoViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Μητρώο εκπαιδευτών";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 11px;
+    }
+</style>
+
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Μητρώο εκπαιδευτών</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+        @(Html.Kendo().Grid<TeacherInfoViewModel>()
+        .Name("teachers")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΑΦΜ).Width(12).Groupable(false);
+            columns.Bound(c => c.ΟΝΟΜΑΤΕΠΩΝΥΜΟ).Width(30).Groupable(false)
+                .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(c => c.GENDER).Width(10);          
+            columns.Bound(c => c.KLADOS_NAME).Width(12);
+            columns.Bound(c => c.EIDIKOTITA_TEXT).Width(60);
+            columns.Template(
+            @<text></text>)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("TeacherEdit", "School") + "?teacherId=#=TEACHER_ID#' target = _blank><span class=\"k-icon k-edit\"></span>Επεξεργασία</a>"
+            ).Width(20);
+        })
+        .HtmlAttributes(new { style="font-size:12px" })
+        .Selectable()
+        .Groupable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .Filterable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(320))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(40)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.TEACHER_ID);
+            })            
+            .Read(read => read.Action("TeacherInfo_Read", "School"))
+            .Aggregates(a =>
+            {
+                a.Add(p => p.ΟΝΟΜΑΤΕΠΩΝΥΜΟ).Count();
+            })
+            .Events(events => events.Error("error_handler"))            
+            )
+            .Events(events => events.Change("change"))
+
+        )  @* --- data grid ---*@
+</div>
+
+<div id="partialDiv" class="body-content" style="margin:15px 30px 5px 30px;font-size:small">
+    @Html.Partial("TeacherInfoPartial")
+</div>
+
+<script id="events" type="text/javascript">
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var teacherID = dataItem.TEACHER_ID;
+        //alert("teacherID=" + teacherID);
+        // Handle data source of partial view
+        $.ajax({
+            url: '@Url.Action("GetTeacherRecord", "School")?teacherId=' + teacherID,
+            type: 'GET',
+            data: "",
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#partialDiv").html(data);
+            },
+            error: function () {
+                MessageBoxAlert("Προέκυψε πρόβλημα ανάκτησης δεδομένων.", "Σφάλμα");
+            }
+        });
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#teachers").data("kendoGrid");
+        grid.dataSource.read();
+
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+    }
+
+</script>
+
+
+
+
+

@@ -1,0 +1,59 @@
+﻿@model Proteus.Models.TeacherAitiseisViewModel
+
+@{
+    ViewBag.Title = "Αίτηση εκπαιδευτή";
+    Layout = "~/Views/Shared/_PrintLayout.cshtml";
+}
+
+@section styles
+{
+    <link href="https://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet" />
+    <link href="https://kendo.cdn.telerik.com/2013.2.918/styles/kendo.common.min.css" rel="stylesheet" />
+    <link href="https://kendo.cdn.telerik.com/2013.2.918/styles/kendo.default.min.css" rel="stylesheet" />
+
+    <link href="@Url.Content("~/ReportViewer/styles/ReportViewer-8.0.14.225.css")" rel="stylesheet" />
+
+    <style>
+        #reportViewer1 {
+            position: absolute;
+            left: 5px;
+            right: 5px;
+            top: 5px;
+            bottom: 5px;
+            overflow: hidden;
+            font-family: Verdana, Arial;
+        }
+    </style>
+}
+
+@{
+    var typeReportSource = new Telerik.Reporting.TypeReportSource() { TypeName = typeof(Proteus.Reports.Teachers.TeacherAitisi).AssemblyQualifiedName };
+    if (Model != null) 
+    {
+        typeReportSource.Parameters.Add("aitisiID", Model.ΑΙΤΗΣΗ_ΚΩΔ); 
+    }
+}
+
+@section scripts
+{
+    <!-- the scripts of the viewer -->
+    <!--kendo.all.min.js can be used as well instead of kendo.web.min.js and kendo.mobile.min.js-->
+    <script src="https://kendo.cdn.telerik.com/2013.2.918/js/kendo.all.min.js"></script>
+
+    <script src="@Url.Content("~/ReportViewer/js/ReportViewer-8.0.14.225.js")"></script>
+    <script src="@Url.Content("~/ReportViewer/resources.el-GR.js")"></script>
+}
+
+<div>
+    @(Html.TelerikReporting().ReportViewer()
+    .Id("reportViewer1")
+    .ServiceUrl(Url.Content("~/api/reports/"))
+    .TemplateUrl(Url.Content("~/ReportViewer/templates/telerikReportViewerTemplate.html"))
+    .ReportSource(typeReportSource)
+    .ViewMode(ViewModes.PRINT_PREVIEW)
+    .ScaleMode(ScaleModes.SPECIFIC)
+    .PersistSession(true)
+    .Scale(1.0)
+    )
+</div>
+

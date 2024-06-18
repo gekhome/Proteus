@@ -1,0 +1,122 @@
+﻿@model ErgodotesViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style scoped="scoped">
+        .k-detail-cell .k-tabstrip .k-content {
+            padding: 0.2em;
+        }
+
+        .ergodotis-details ul {
+            list-style: none;
+            font-style: italic;
+            margin: 10px;
+            padding: 0;
+        }
+
+        .ergodotis-details ul li {
+            margin: 0;
+            line-height: 1.7em;
+        }
+
+        .ergodotis-details label {
+            display: inline-block;
+            width: 200px;
+            padding-right: 10px;
+            text-align: right;
+            font-style: normal;
+            font-weight: bold;
+        }
+    </style>
+
+    <style>
+        .k-grid {
+            font-size: 11px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="body-content" style="margin:5px 0px 5px 0px;font-size:small;">
+
+        @(Html.Kendo().TabStrip()
+        .Name("TabStrip")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text("Σπουδαστές πρακτικής")
+            .Content(@<text>
+                @(Html.Kendo().Grid<PraktikiInfoViewModel>()
+                .Name("Grid")
+                .HtmlAttributes(new { style = "font-size:11px" })
+                .Columns(columns =>
+                {
+                    columns.Bound(o => o.ΟΝΟΜΑΤΕΠΩΝΥΜΟ).Width(24);
+                    columns.Bound(o => o.EIDIKOTITA_TEXT).Width(40);
+                    columns.Bound(o => o.ΕΡΓΟΔΟΤΗΣ_ΕΠΩΝΥΜΙΑ).Width(30);
+                    columns.Bound(o => o.ΗΜΝΙΑ_ΑΠΟ).Width(14);
+                    columns.Bound(o => o.ΗΜΝΙΑ_ΕΩΣ).Width(14);
+                    columns.Bound(o => o.ΩΡΕΣ).Width(12);
+                    columns.Bound(m => m.ΕΡΓ_ΠΡΑΚΤΙΚΗ_ΚΩΔ).Filterable(false).Groupable(false)
+                    .ClientTemplate(
+                    "<a class=\"k-button k-button-icontext\" href='" + Url.Action("XPraktikiBebeosiPrint", "Admin") + "?praktikiId=#=ΕΡΓ_ΠΡΑΚΤΙΚΗ_ΚΩΔ#' target = _blank><span class=\"k-icon k-justifyFull\"></span>Εκτύπωση</a>")
+                    .Title("").Width(16);
+                })           
+                .DataSource(dataSource => dataSource
+                    .Ajax()
+                    .PageSize(10)
+                    .Read(read => read.Action("PraktikiInfo_Read", "Admin", new { ergodotisId = Model.ΕΡΓΟΔΟΤΗΣ_ΚΩΔ }))
+                )
+                .Pageable(pageable => pageable
+                .Refresh(true)
+                .PageSizes(true)
+                .ButtonCount(3))
+                .Sortable()
+                .Filterable()
+                .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+                .Scrollable(scr => scr.Height(220))                
+                )
+            </text>);
+            items.Add().Text("Στοιχεία εργοδότη").Content(
+                @<div class="ergodotis-details">
+                <table>
+                    <tr>
+                        <td style="width:600px">
+                            <ul>
+                                <li>
+                                    <label>Τηλέφωνα:</label>@Html.DisplayFor(m => m.ΤΗΛΕΦΩΝΑ, new { @class = "control-label col-md-10" })
+                                </li>
+                                <li>
+                                    <label>E-Mail:</label>@Html.DisplayFor(m => m.EMAIL, new { @class = "control-label col-md-10" })
+                                </li>
+                                <li>
+                                    <label>Διεύθυνση:</label>@Html.DisplayFor(m => m.ΔΙΕΥΘΥΝΣΗ, new { @class = "control-label col-md-10" })
+                                </li>
+                                <li>
+                                    <label>Υπεύθυνος:</label>@Html.DisplayFor(m => m.ΥΠΕΥΘΥΝΟΣ, new { @class = "control-label col-md-10" })
+                                </li>
+                                <li>
+                                    <label>Παρατηρήσεις:</label>@Html.DisplayFor(m => m.ΠΑΡΑΤΗΡΗΣΕΙΣ, new { @class = "control-label col-md-10" })
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </table>
+</div>);
+        })
+)   @*-- Tabstrip ---*@
+    </div>
+</body>
+</html>

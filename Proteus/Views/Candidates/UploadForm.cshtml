@@ -1,0 +1,271 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Καρτέλα μεταφόρτωσης";
+    Layout = "~/Views/Shared/_LayoutMin.cshtml";
+    int uploadID = (int)ViewData["uploadId"];
+}
+
+<link href="@Url.Content("~/Content/mvcNotify.css")" rel="stylesheet" type="text/css" />
+<script src="@Url.Content("~/Scripts/mvcNotify.js")" type="text/javascript"></script>
+<script type="text/javascript">
+    //Set autoclear of messages. Don't put this into $(document).ready.
+    //mvcNotify.autoClearTimeout = 0; //don't autoclear any types
+    mvcNotify.autoClearTimeout = 10000; //Unit of milliseconds. Requires mvcNotify.typesToAutoClear to be set to something (default behavior).
+    mvcNotify.typesToConsoleLog = "all"; //Log all types to console.
+</script>
+
+
+<div class="container body-content">
+    <table class="col-md-12" style="border:solid;border-width:thin;margin:20px 40px 20px 20px">
+        <tr>
+            <th style="background-color:dimgray;padding-left:20px;padding-top:2px;padding-bottom:4px;margin-top:2px;margin-bottom:2px">
+                <font style="font-family:'Segoe UI';font-size:large;color:white;">Μεταφόρτωση αρχείων στον εξυπηρετητή</font>
+            </th>
+        </tr>
+        <tr>
+            <td>
+                <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                    <a class="btn btn-warning" style="font-family:'Segoe UI';font-size:14px" href="#" onclick="javascript:window.close();opener.window.focus();">Κλείσιμο καρτέλας</a>
+                </span>
+                <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                    <a class="btn btn-primary" style="font-family:'Segoe UI';font-size:14px" href="#" onclick="javascript:showHelp();">Οδηγίες</a>
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="col-md-12">
+                    @(Html.Kendo().Upload()
+                        .Name("files")
+                        .HtmlAttributes(new { title = "Δεν έχει γίνει επιλογή αρχείων" })
+                        .TemplateId("fileTemplate")
+                        .Async(a => a
+                            .Save("Upload", "Candidates", new { uploadId = uploadID })
+                            .Remove("Remove", "Candidates", new { uploadId = uploadID })
+                            .AutoUpload(false))
+                        .Events(e => e.Error("error_handler"))
+                    )
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <script id="fileTemplate" type="text/x-kendo-template">
+                    <span class='k-progress'></span>
+                    <div class='file-wrapper'>
+                        <span class='file-icon #=addExtensionClass(files[0].extension)#'></span>
+                        <h4 class='file-heading file-name-heading' style="font-size:14px;font-weight:bold"> Όνομα : #=name#</h4>
+                        @*<br />*@
+                        <h4 class='file-heading file-size-heading' style="font-size:14px;font-style:italic"> Μέγεθος : #=size# bytes</h4>
+                        <button type='button' class='k-upload-action'></button>
+                    </div>
+                </script>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div id="modalWindow">
+    <div class="inline-picture">
+        <img src='@Url.Content("~/Images/other/file-select.jpg")' height="260" width="380" alt="Πολλαπλή επιλογή αρχείων" />
+         Πολλαπλή επιλογή αρχείων
+    </div>
+    <p>
+        Όταν πατήσουμε το κουμπί "Επιλογή..." ανοίγει το παράθυρο επολογής αρχείων, 
+        όπως αυτό της εικόνας. Από το παράθυρο αυτό μπορούμε να μεταβούμε στο φάκελο
+        όπου έχουμε αποθηκεύσει τα σκαναρισμένα διακολογητικά.
+    </p>       
+    <p>
+        Στο παράθυρο τώρα, πρέπει να φαίνονται τα σκαναρισμένα αρχεία των δικαιολογητικών.
+        Το επόμενο βήμα είναι να επιλέξουμε ένα ή περισσότερα αρχεία για ανέβασμα.
+        Για να επιλέξουμε ένα αρχείο κάνουμε κλικ επάνω στην ονομασία του και πατάμε το
+        κουμπί "Άνοιγμα" ή απλά κάνουμε διπλό κλικ επάνω του.
+    </p>
+    <p>
+        Για να επιλέξουμε περισσότερα από ένα αρχεία, ακολουθούμε τα εξής βήματα:
+        <ul>
+            <li>
+                Κάνουμε κλικ στο πρώτο αρχείο αρχείο οπότε εμφανίζεται χρωματισμένο
+                που σημαίνει ότι είναι επιλεγμένο.
+            </li>
+            <li>
+                Πατάμε το πλήκτρο 'Ctrl' και κρατώντας το πατημένο, κάνουμε κλικ σε
+                κάθε άλλο αρχείο που θέλουμε να επιλέξουμε.
+            </li>
+        </ul>
+        Τα επιλεγμένα αρχεία εμφανίζονται χρωματισμένα όπως αυτά της διπλανής εικόνας. Τέλος πατάμε το κουμπί
+        "Άνοιγμα" που βρίσκεται στο κάτω μέρος του παραθύρου επιλογής αρχείων.
+    </p>
+    <div style="margin-left:0px;margin-top:20px;text-align:center;">
+        <button id="no" class="k-button" style="margin-left:5px">Κλείσιμο</button>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        wnd = $("#modalWindow").kendoWindow({
+            title: "Οδηγίες μεταφόρτωσης αρχείων",
+            modal: true,
+            visible: false,
+            resizable: false,
+            height: 480,
+            width: 840
+        }).data("kendoWindow");
+
+    });
+
+
+    function addExtensionClass(extension) {
+            switch (extension) {
+                case '.jpg':
+                case '.img':
+                case '.png':
+                case '.gif':
+                    return "img-file";
+                case '.doc':
+                case '.docx':
+                    return "doc-file";
+                case '.xls':
+                case '.xlsx':
+                    return "xls-file";
+                case '.pdf':
+                    return "pdf-file";
+                case '.zip':
+                case '.rar':
+                    return "zip-file";
+                case '.txt':
+                    return "txt-file";
+                case '.mdb':
+                case '.accdb':
+                    return "mdb-file";
+                default:
+                    return "default-file";
+            }
+        }
+
+    function error_handler(e) {
+        var err = e.XMLHttpRequest.responseText;
+        var message = err + "<br/>Αρχείο : " + getFileInfo(e)
+        MessageBoxAlert(message, "Μεταφόρτωση");
+    }
+
+    function getFileInfo(e) {
+        return $.map(e.files, function (file) {
+            var info = file.name;
+
+            // File size is not available in all browsers
+            if (file.size > 0) {
+                info += " (" + Math.ceil(file.size / 1024) + " KB)";
+            }
+            return info;
+        }).join(", ");
+    }
+
+    function showHelp() {
+        // Open user-dialog window
+        wnd.center().open();
+
+        $("#no").click(function () {
+            wnd.close();
+        });
+
+    }
+
+</script>
+
+<style>
+    .inline-picture {
+        float: left;
+        margin: 30px 30px 100px 30px;
+        text-align: center;
+    }
+    .inline-picture img {
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    #box
+    {
+        position:relative;
+        min-height:300px;
+        font-size: 14px;
+    }
+
+    .file-icon {
+        display: inline-block;
+        float: left;
+        width: 48px;
+        height: 48px;
+        margin-left: 10px;
+        margin-right: 10px;
+        margin-top: 5px;
+
+    }
+
+    .img-file {
+        background-image: url(@Url.Content("~/Images/upload/jpg.png"));
+    }
+    .doc-file {
+        background-image: url(@Url.Content("~/Images/upload/doc.png"));
+    }
+    .pdf-file {
+        background-image: url(@Url.Content("~/Images/upload/pdf.png"));
+    }
+    .xls-file {
+        background-image: url(@Url.Content("~/Images/upload/xls.png"));
+    }
+    .zip-file {
+        background-image: url(@Url.Content("~/Images/upload/zip.png"));
+    }
+    .txt-file {
+        background-image: url(@Url.Content("~/Images/upload/txt.png"));
+    }
+    .mdb-file {
+        background-image: url(@Url.Content("~/Images/upload/mdb.png"));
+    }
+    .default-file {
+        background-image: url(@Url.Content("~/Images/upload/default.png"));
+    }
+
+ #box .file-heading {
+        font-family: Arial;
+        font-size: 1.1em;
+        display: inline-block;
+        float: left;
+        width: 450px;
+        margin: 0 0 0 20px;
+        height: 25px;
+        -ms-text-overflow: ellipsis;
+        -o-text-overflow: ellipsis;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+ #box .file-name-heading {
+        font-weight: bold;
+    }
+
+ #box  .file-size-heading {
+        font-weight: normal;
+        font-style: italic;
+    }
+
+    li.k-file .file-wrapper .k-upload-action {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+
+    li.k-file div.file-wrapper {
+        position: relative;
+        height: 65px;
+    }
+
+</style>

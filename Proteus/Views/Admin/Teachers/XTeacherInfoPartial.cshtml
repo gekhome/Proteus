@@ -1,0 +1,177 @@
+﻿@model TeacherInfoViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    Layout = null;
+    string date_birth = "";
+    string date_hire = "";
+    Nullable<DateTime> dt = Model.ΗΜΝΙΑ_ΓΕΝΝΗΣΗ;
+    Nullable<DateTime> dh = Model.ΗΜΝΙΑ_ΠΡΟΣΛΗΨΗ;
+    date_birth = dt.HasValue ? dt.Value.ToString("dd-MM-yyyy") : string.Empty;
+    date_hire = dt.HasValue ? dt.Value.ToString("dd-MM-yyyy") : string.Empty;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style scoped="scoped">
+        .k-detail-cell .k-tabstrip .k-content {
+            padding: 0.2em;
+        }
+        .k-grid {
+        font-size: 12px;
+    }
+
+        .student-details ul {
+            list-style: none;
+            font-style: italic;
+            margin: 10px;
+            padding: 0;
+        }
+
+        .student-details ul li {
+            margin: 0;
+            line-height: 1.7em;
+        }
+
+        .student-details label {
+            display: inline-block;
+            width: 200px;
+            padding-right: 10px;
+            text-align: right;
+            font-style: normal;
+            font-weight: bold;
+        }
+    </style>
+
+    <style>
+        .k-grid {
+            font-size: 11px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="body-content" style="margin:5px 0px 5px 0px">
+
+        @(Html.Kendo().TabStrip()
+        .Name("TabStrip")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text("Απασχόληση").Content(@<text>
+
+            @(Html.Kendo().Grid<TeacherPeriodsInfoViewModel>()
+            .Name("periods")
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.ΠΕΡΙΟΔΟΣ).Width(10);
+                columns.Bound(o => o.ΗΜΝΙΑ_ΠΡΟΣΛΗΨΗΣ).Width(12);
+                columns.Bound(o => o.ΑΠΟΦΑΣΗ).Width(30);
+                columns.Bound(o => o.ΑΔΑ).Width(30);
+            })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+                .Read(read => read.Action("PeriodsInfo_Read", "Admin", new { teacherId = Model.TEACHER_ID }))
+            )
+            .HtmlAttributes(new { style="font-size:12px" })
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5))
+            .Sortable()
+            .Filterable()
+            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+            .Scrollable(scr => scr.Height(140))                
+            )
+            </text>);
+            items.Add().Text("Αναθέσεις").Content(@<text>
+
+            @(Html.Kendo().Grid<TeacherAnatheseisInfoViewModel>()
+            .Name("anatheseis")
+            .Columns(columns =>
+            {
+                columns.Bound(o => o.EIDIKOTITA_TEXT).Width(40);
+                columns.Bound(o => o.LESSON_DESC).Width(40);
+                columns.Bound(o => o.ΩΡΕΣ_ΘΕΩΡΙΑ).Width(12);
+                columns.Bound(o => o.ΩΡΕΣ_ΕΡΓΑΣΤΗΡΙΟ).Width(12);
+            })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Read(read => read.Action("AnatheseisInfo_Read", "Admin", new { teacherId = Model.TEACHER_ID }))
+            )
+            .HtmlAttributes(new { style = "font-size:11px" })
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5))
+            .Sortable()
+            .Filterable()
+            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+            .Scrollable(scr => scr.Height(140))
+        )
+            </text>);
+            items.Add().Text("Στοιχεία εκπαιδευτή").Content(
+                @<div class="student-details">
+                     <table>
+                         <tr>
+                             <td style="width:500px">
+                                 <ul>
+                                     <li>
+                                         <label>Πατρώνυμο:</label>@Html.DisplayFor(m => m.ΠΑΤΡΩΝΥΜΟ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>Μητρώνυμο:</label>@Html.DisplayFor(m => m.ΜΗΤΡΩΝΥΜΟ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>Ημ/νία γέννησης:</label>@Html.DisplayFor(m => m.ΗΜΝΙΑ_ΓΕΝΝΗΣΗ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>Ηλικία:</label>@Html.DisplayFor(m => m.ΗΛΙΚΙΑ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>Διεύθυνση:</label>@Html.DisplayFor(m => m.ΔΙΕΥΘΥΝΣΗ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>Τηλέφωνα:</label>@Html.DisplayFor(m => m.ΤΗΛΕΦΩΝΑ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                </ul>
+                         </td>
+                             <td style="width:500px">
+                                 <ul>
+                                     <li>
+                                         <label>E-Mail:</label>@Html.DisplayFor(m => m.EMAIL, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>ΑΜΚΑ:</label>@Html.DisplayFor(m => m.ΑΜΚΑ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>ΑΜΑ:</label>@Html.DisplayFor(m => m.ΑΜΑ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>ΑΦΜ:</label>@Html.DisplayFor(m => m.ΑΦΜ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>Ημ/νία 1ης πρόσληψης:</label>@Html.DisplayFor(m => m.ΗΜΝΙΑ_ΠΡΟΣΛΗΨΗ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                     <li>
+                                         <label>Απασχόληση:</label>@Html.DisplayFor(m => m.ΥΠΑΛΛΗΛΟΣ_ΛΕΚΤΙΚΟ, new { @class = "control-label col-md-10" })
+                                     </li>
+                                 </ul>
+                             </td>
+                         </tr>
+                     </table>
+                </div>);
+        })
+        )   @*-- Tabstrip ---*@
+    </div>
+</body>
+</html>

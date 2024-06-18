@@ -1,0 +1,96 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Περιφέρειες-Δήμοι";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="page-header" style="margin:5px 60px 5px 60px">
+        <span style="margin:5px 60px 5px 60px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+            <font style="color:#494949;float:left;font-family:'Segoe UI'">Περιφερειακές Ενότητες και Δήμοι</font>
+        </span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+        <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+        <span style="margin:5px 5px 5px 10px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Εκτύπωση", "PeriferiesPrint", "Setup", null, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })</span>
+    </div>
+
+    <div class="body-content" style="margin:10px 60px 5px 60px">
+        @(Html.Kendo().Grid<PeriferiaViewModel>()
+        .Name("Master")
+        .Columns(columns =>
+        {
+            columns.Bound(e => e.PERIFERIA_NAME).Width(90);
+        })
+        .HtmlAttributes(new { style = "font-size:12px" })
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Selectable()
+        .Filterable()
+        .Scrollable(scr => scr.Height(300))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(40)
+            .Read(read => read.Action("Periferies", "Setup"))
+        )
+        .Events(events => events.Change("change"))
+        )
+
+        <br />
+        @(Html.Kendo().Grid<DimosViewModel>()
+            .Name("Child")
+            .AutoBind(false)
+            .HtmlAttributes(new { style = "font-size:12px" })
+            .Filterable()
+            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5))
+            .Scrollable(scr => scr.Height(160))
+            .Columns(columns =>
+            {
+                columns.Bound(e => e.DIMOS).Width(120);
+            })
+            .DataSource(ds => ds
+            .Ajax()
+            .PageSize(40)
+            .ServerOperation(false)
+            .Read(read => read.Action("Dimoi", "Setup"))
+            .Aggregates(a =>
+            {
+                a.Add(p => p.DIMOS_ID).Count();
+            })
+            )
+        )
+
+    </div>
+}
+<script>
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var perId = dataItem.PERIFERIA_ID;
+
+        $("#Child").data("kendoGrid").dataSource.read({ periferiaId: perId });
+        $("#Child").css("display", "block");
+    }
+</script>
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Child").data("kendoGrid");
+        var dataItem = $("#Master").dataItem($("#Master").select());
+        var perId = dataItem.PERIFERIA_ID;
+
+        grid.dataSource.read({ periferiaId: perId });
+    }
+
+</script>
+

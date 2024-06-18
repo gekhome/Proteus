@@ -1,0 +1,21 @@
+﻿@using System.Collections
+@using Proteus.Models
+@using Proteus.DAL
+@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(false)
+    .DataValueField("TEACHER_ID")
+    .DataTextField("ΟΝΟΜΑΤΕΠΩΝΥΜΟ")
+    .OptionLabel("Επιλογή εκπαιδευτή...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("PeriodTeachers_Read", "School").Data("filterTeachers");
+        })
+        .ServerFiltering(true);
+    })
+    .CascadeFrom("PERIOD_ID")
+)
+@Html.ValidationMessageFor(m => m)

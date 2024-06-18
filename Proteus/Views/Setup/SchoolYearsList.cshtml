@@ -1,0 +1,106 @@
+﻿@using Proteus.Models
+@model IEnumerable<Proteus.Models.SchoolYearsViewModel>
+
+@{
+    ViewBag.Title = "Σχολικά Έτη";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .k-grid .k-alt {
+        background-color: #e9e9e9; /* specify the alternate background-color */
+    }
+</style>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="page-header" style="margin:5px 30px 5px 30px">
+        <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+            <font style="color:#494949;font-family:'Segoe UI'">Σχολικά έτη</font>
+        </span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+        <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+    </div>
+
+    <div class="body-content" style="margin:10px 30px 5px 30px">
+
+        @(Html.Kendo().Grid<SchoolYearsViewModel>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(m => m.SY_TEXT).Width(25);
+            columns.Bound(m => m.SY_DATESTART).Width(25);
+            columns.Bound(m => m.SY_DATEEND).Width(25);
+            columns.Bound(m => m.DATE_ELSTAT).Width(25);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(34);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Filterable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(400))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+            .Ajax()
+            .PageSize(20)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.SY_ID);
+            })
+            .Create(create => create.Action("SchoolYear_Create", "Setup"))
+            .Read(read => read.Action("SchoolYear_Read", "Setup"))
+            .Update(update => update.Action("SchoolYear_Update", "Setup"))
+            .Destroy(destroy => destroy.Action("SchoolYear_Destroy", "Setup"))
+            .Events(events => events.Error("error_handler"))           
+    ) @* datasource*@
+    )
+
+    </div>
+}
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        RefreshGrid(e);
+    }
+
+</script>
+
+@*<script>
+
+        $(document).ready(function () {
+          $("#years").change(function () {
+              var url = '@Url.Content("~/")' + "Experience/IncomeYear_SelectedYear";
+              var ddlsource = "#years";
+              var ddltarget = "#taxfree";
+              $.getJSON(url, { selected_year: $(ddlsource).val() }, function (data) {
+              $(ddltarget).empty();
+              $(ddltarget).val(data);
+            });
+          });
+        });
+    </script>*@

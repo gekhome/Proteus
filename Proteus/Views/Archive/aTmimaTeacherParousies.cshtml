@@ -1,0 +1,145 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Βιβλίο εκπαιδευτών";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Βιβλίο παρουσιών εκπαιδευτών (αρχείο)</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+        @Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })
+    </span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+
+    @(Html.Kendo().Grid<sqlTmimataViewModel>()
+    .Name("Master")
+    .Columns(columns =>
+    {
+        columns.Bound(c => c.ΤΜΗΜΑ_ΟΝΟΜΑ).Width(20).Groupable(false);
+        columns.ForeignKey(f => f.PERIOD_ID, (IEnumerable<ΠΕΡΙΟΔΟΙ>)ViewData["periodoi"], "PERIOD_ID", "ΠΕΡΙΟΔΟΣ").Width(14);
+        columns.Bound(c => c.TERM).Width(10);
+        columns.Bound(c => c.EIDIKOTITA_TEXT).Width(60)
+            .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+            .ClientGroupFooterTemplate("Πλήθος: #=count#");
+        columns.Bound(c => c.ΤΜΗΜΑ_ΚΩΔ).Width(10).Hidden();
+    })
+        .Navigatable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Filterable()
+        .Selectable()
+        .HtmlAttributes(new { style = "font-size:12px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(400))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΤΜΗΜΑ_ΚΩΔ);
+        })
+        .Read(read => read.Action("aTmimata_Read", "Archive"))
+        .Aggregates(a =>
+        {
+            a.Add(p => p.EIDIKOTITA_TEXT).Count();
+        })
+        .Events(events => events.Error("error_handler"))
+        )
+    )
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:14px;background-color:dimgray;padding:4px 4px 4px 4px;min-height:40px">
+    <label style="font-size:14px;font-weight:bold;color:white">Από ημερομηνία : </label>
+    @(Html.Kendo().DatePicker()
+        .Name("datepicker1")
+        .Value(DateTime.Today)
+        .Enable(true)
+        .Format("dd/MM/yyyy")
+        .HtmlAttributes(new { style = "width:130px;font-size:14px;font-weight:bold", type="text" })
+    )
+    <label style="margin-left:10px;font-size:14px;font-weight:bold;color:white">Έως ημερομηνία : </label>
+    @(Html.Kendo().DatePicker()
+        .Name("datepicker2")
+        .Value(DateTime.Today)
+        .Enable(true)
+        .Format("dd/MM/yyyy")
+        .HtmlAttributes(new { style = "width:130px;font-size:14px;font-weight:bold", type = "text" })
+    )
+    <span style="margin-right:5px;margin-left:5px;float:right;font-family:'Segoe UI';">
+        <input style="font-family:'Segoe UI';font-size:13px;" type="button" onclick="PrintParousies()" value=" Εκτύπωση " class="btn btn-default" />
+    </span>
+</div>
+
+
+<script type="text/javascript">
+
+    function PrintParousies() {
+        var datepicker1 = $("#datepicker1").data("kendoDatePicker");
+        var datepicker2 = $("#datepicker2").data("kendoDatePicker");
+        var Date1 = datepicker1.value();
+        var Date2 = datepicker2.value();
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+
+        if (dataItem) {
+            var periodID = dataItem.PERIOD_ID;
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        }
+        else {
+            MessageBoxAlert("Πρέπει να προηγηθεί επιλογή τμήματος.")
+        }
+        if (!Date2) {
+            Date2 = Date1
+        }
+        if (periodID && tmimaID) {
+            if (Date1 && Date2) {
+                if (Date1 <= Date2) {
+                    window.open('@Url.Action("aDocTeacherParousiesPrint", "Archive")?periodId=' + periodID + '&tmimaId=' + tmimaID + '&theDate1=' + kendo.toString(Date1, 'dd/MM/yyyy') + '&theDate2=' + kendo.toString(Date2, 'dd/MM/yyyy'));
+                }
+                else {
+                    MessageBoxAlert("Η αρχική ημερομηνία πρέπει να είναι μικρότερη της τελικής.")
+                }
+            }
+            else {
+                MessageBoxAlert("Πρέπει να γίνει επιλογή αρχικής ή/και τελικής ημερομηνίας ");
+            }
+        }
+    }
+
+
+    function RefreshGrid(e) {
+        var grid = $("#Master").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+    }
+
+</script>
+
+
+

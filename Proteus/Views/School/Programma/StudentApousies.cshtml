@@ -1,0 +1,229 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Απουσίες σπουδαστών";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 11px;
+    }
+    .k-calendar {
+        font-size: 12px;
+    }
+</style>
+
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Απουσίες σπουδαστών</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+
+        @(Html.Kendo().Grid<sqlTmimataViewModel>()
+        .Name("Master")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΤΜΗΜΑ_ΟΝΟΜΑ).Width(20).Groupable(false);
+            columns.Bound(c => c.ΠΕΡΙΟΔΟΣ).Width(15);
+            columns.Bound(c => c.TERM).Width(10);
+            columns.Bound(c => c.EIDIKOTITA_TEXT).Width(70)
+                .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(c => c.ΤΜΗΜΑ_ΚΩΔ).Width(10).Hidden();
+            columns.Bound(c => c.EIDIKOTITA_ID).Width(10).Hidden();
+            columns.Bound(c => c.TERM_ID).Width(10).Hidden();
+        })
+        .Navigatable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Selectable()
+        .Filterable()
+        .HtmlAttributes(new { style = "font-size:12px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(220))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΤΜΗΜΑ_ΚΩΔ);
+        })
+        .Read(read => read.Action("Tmimata_Read", "Programma"))
+        .Aggregates(a =>
+        {
+            a.Add(p => p.EIDIKOTITA_TEXT).Count();
+        })
+        )
+        .Events(events => events.Change("change"))
+        )
+    </div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:14px;background-color:dimgray;padding:4px 4px 4px 4px">
+    <label style="font-size:14px;font-weight:bold;color:white">Επιλογή ημερομηνίας : </label>
+    @(Html.Kendo().DatePicker()
+        .Name("datepicker")
+        .Value(DateTime.Today)
+        .HtmlAttributes(new { style = "width:130px;font-size:14px;font-weight:bold", type = "text" })
+        .Events(e =>
+        {
+            e.Change("dpchange");
+        })
+    )
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+
+        @(Html.Kendo().Grid<StudentApousiesViewModel>()
+        .Name("Child")
+        .AutoBind(false)
+        .HtmlAttributes(new { style = "font-size:12px" })
+        .Navigatable()
+        .Filterable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Resizable(resize => resize.Columns(true))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(240))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΜΑΘΗΤΗΣ_ΚΩΔ, (IEnumerable<qrySTUDENT_TMIMA_SELECTOR>)ViewData["students"], "STUDENT_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ")
+                .Width(30).EditorTemplateName("ProgrammaStudentId");
+            columns.ForeignKey(f => f.ΚΩΔ_ΜΑΘΗΜΑ, (IEnumerable<qryIEK_LESSONS_IN_PROGRAMMADAY>)ViewData["lessons"], "LESSON_ID", "LESSON_DESC")
+                .Width(60).EditorTemplateName("ApousiesLessonId");
+            columns.ForeignKey(f => f.ΩΡΕΣ_ΑΠΟΥΣΙΑ, (IEnumerable<NUMBERS>)ViewData["hours"], "NUMBER", "NUMBER").Width(10);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(30);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(false)
+            .PageSize(20)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΜΑ_ΚΩΔ);
+                model.Field(p => p.ΩΡΕΣ_ΑΠΟΥΣΙΑ).DefaultValue(1);
+                model.Field(p => p.ΚΩΔ_ΜΑΘΗΜΑ).DefaultValue(0);
+                model.Field(p => p.ΜΑΘΗΤΗΣ_ΚΩΔ).DefaultValue(0);
+            })
+            .Create(create => create.Action("Apousia_Create", "Programma").Data("data"))
+            .Read(read => read.Action("Apousia_Read", "Programma").Data("data"))
+            .Update(update => update.Action("Apousia_Update", "Programma").Data("data"))
+            .Destroy(destroy => destroy.Action("Apousia_Destroy", "Programma"))
+            .Events(events => events.Error("error_handler"))
+        )
+        )
+</div>
+
+
+    <script type="text/javascript">
+
+        function filterStudents() {
+            var masterGrid = $("#Master").data("kendoGrid");
+
+            // get data item for selected row
+            var dataItem = masterGrid.dataItem(masterGrid.select());
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+            return {
+                tmimaId: tmimaID,
+            }
+        }
+
+        function filterLessons() {
+            var masterGrid = $("#Master").data("kendoGrid");
+            var datepicker = $("#datepicker").data("kendoDatePicker");
+                
+            // get data item for selected row and date
+            var dataItem = masterGrid.dataItem(masterGrid.select());
+            var eidikotitaID = dataItem.EIDIKOTITA_ID;
+            var termID = dataItem.TERM_ID;
+
+            // selectedDate fails to reach Controller action as DateTime
+            // so need to send a string
+            var dpDate = datepicker.value().toString();
+            var selectedDate = new Date(dpDate).toDateString();
+
+            //alert("selectedDate=" + kendo.toString(selectedDate));
+
+            return { eidikotitaId: eidikotitaID, termId: termID, valueDate: selectedDate };
+        }
+
+        function dpchange() {
+            var datepicker = $("#datepicker").data("kendoDatePicker");
+            var selectedDate = this.value();
+            var masterGrid = $("#Master").data("kendoGrid");
+            var dataItem = masterGrid.dataItem(masterGrid.select());
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+            //alert("theDate=" + kendo.toString(this.value(), 'd'));
+
+            $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, theDate: selectedDate });
+            $("#Child").css("display", "block");
+
+        }
+
+        function RefreshGrid(e) {
+            var grid = $("#Master").data("kendoGrid");
+            grid.dataSource.read();
+        }
+
+        function change(e) {
+            var datepicker = $("#datepicker").data("kendoDatePicker");
+            var selectedDate = datepicker.value();
+
+            //alert("selectedDate="+ kendo.toString(selectedDate));
+
+            var dataItem = this.dataItem(this.select());
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+
+            $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, theDate: selectedDate });
+            $("#Child").css("display", "block");
+
+        }
+
+        function data() {
+            var masterGrid = $("#Master").data("kendoGrid");
+            var datepicker = $("#datepicker").data("kendoDatePicker");
+            selectedDate = datepicker.value();
+
+            // get data item for selected row
+            var dataItem = masterGrid.dataItem(masterGrid.select());
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+
+            return {
+                tmimaId: tmimaID,
+                theDate: selectedDate
+            }
+        }
+
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "<br/>";
+                        });
+                    }
+                });
+                MessageBoxAlert(message, "Σφάλμα");
+            }
+        }
+
+    </script>
+

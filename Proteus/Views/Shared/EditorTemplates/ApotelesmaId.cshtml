@@ -1,0 +1,20 @@
+﻿@using System.Collections
+@using Proteus.Models
+@using Proteus.DAL
+@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(true)
+    .DataValueField("ΑΠΟΤΕΛΕΣΜΑ_ΚΩΔ")
+    .DataTextField("ΑΠΟΤΕΛΕΣΜΑ")
+    .OptionLabel("Επιλογή ...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("XmGetResult", "MoriaSchool");
+        })
+        .ServerFiltering(true);
+    })
+)
+@Html.ValidationMessageFor(m => m)

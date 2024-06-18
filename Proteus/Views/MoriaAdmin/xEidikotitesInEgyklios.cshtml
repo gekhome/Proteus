@@ -1,0 +1,175 @@
+﻿@model IEnumerable<Proteus.Models.XmEgykliosEidikotitesViewModel>
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Εγκύκλιος ειδικότητες";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    string schoolYear = ViewData["schoolYearText"].ToString();
+    string protocol = ViewData["egykliosProtocol"].ToString();
+    string displayInfo = schoolYear + ": " + protocol;
+}
+<style>
+    .k-grid {
+        font-size: 11px;
+    }
+</style>
+
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#292929;float:left;font-family:'Segoe UI'">Εγκεκριμένες ειδικότητες ανά εγκύκλιο</font>
+    </span>
+    <span style="margin:0px 5px 0px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <span style="margin:0px 5px 0px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Εκτύπωση", "xEidikotitesEgykliosPrint", "MoriaAdmin", null, new { @class = "btn btn-info", style = "font-size:14px", target = "_blank" })</span>
+</div>
+
+<div class="body-content" style="margin:5px 30px 5px 30px;background-color:dimgray;padding:4px 4px 4px 4px;min-height:40px">
+    <label style="font-size:14px;font-weight:bold;color:white">Εγκύκλιος για επεξεργασία: </label>
+    @(Html.Kendo().DropDownList()
+        .Name("ddlEgyklios")
+        .DataTextField("ΕΓΚΥΚΛΙΟΣ_ΑΠ")
+        .DataValueField("ΕΓΚΥΚΛΙΟΣ_ΚΩΔ")
+        .HtmlAttributes(new { style = "width:200px;font-size:14px;font-weight:bold;margin-top:2px" })
+        .OptionLabel("Επιλογή...")
+        .AutoBind(true)
+        .Enable(true)
+        .DataSource(source => { source.Read(read => { read.Action("GetEgykliosList", "MoriaAdmin"); }); })
+        .Events(e =>
+        {
+            e.Select("ddl1select");
+        })
+    )
+    <label style="font-size:14px;font-weight:bold;color:white;margin-left:10px">Σχολική μονάδα: </label>
+    @(Html.Kendo().DropDownList()
+        .Name("ddlSchool")
+        .DataTextField("SCHOOL_NAME")
+        .DataValueField("SCHOOL_ID")
+        .HtmlAttributes(new { style = "width:240px;font-size:14px;font-weight:bold;margin-top:2px" })
+        .OptionLabel("Επιλογή...")
+        .AutoBind(true)
+        .Enable(true)
+        .DataSource(source => { source.Read(read => { read.Action("GetIekList", "MoriaAdmin"); }); })
+        .Events(e =>
+        {
+            e.Select("ddl2select");
+        })
+    )
+</div>
+
+<div class="body-content" style="margin:5px 30px 5px 30px">
+    @(Html.Kendo().Grid(Model)
+        .Name("Grid")
+        .AutoBind(false)
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.EIDIKOTITA_ID, (IEnumerable<ΧΜ_ΕΙΔΙΚΟΤΗΤΕΣ>)ViewData["Eidikotites"], "EIDIKOTITA_ID", "EIDIKOTITA_TEXT").Width(120);
+            columns.ForeignKey(f => f.TERM_ID, (IEnumerable<SYS_TERM>)ViewData["terms"], "TERM_ID", "TERM").Width(12);
+            columns.Bound(c => c.STUDENTS).Width(18);
+            columns.Command(command => command.Destroy().Text("Διαγραφή")).Width(20);
+        })
+
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+            toolBar.Save().HtmlAttributes(new { @class = "k-button-success" });
+        })
+        .HtmlAttributes(new { style = "display: block;font-size:14px" })
+        .Filterable()
+        .Groupable()
+        .Editable(editable => editable.Mode(GridEditMode.InCell).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(380))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+            .Ajax()
+            .Batch(true)
+            .PageSize(60)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.RECORD_ID);
+                model.Field(p => p.EIDIKOTITA_ID).DefaultValue(ViewData["defaultEidikotita"]);
+                model.Field(p => p.TERM_ID).DefaultValue(1);
+            })
+            .Create(create => create.Action("EidikotitesEgykliosCreate", "MoriaAdmin").Data("data"))
+            .Read(read => read.Action("EidikotitesEgykliosRead", "MoriaAdmin").Data("data"))
+            .Update(update => update.Action("EidikotitesEgykliosUpdate", "MoriaAdmin").Data("data"))
+            .Destroy(destroy => destroy.Action("EidikotitesEgykliosDestroy", "MoriaAdmin"))
+            .Events(events => events.Error("error_handler"))
+        )
+    )
+</div>
+
+<script>
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    // Prokirixi selection
+    function ddl1select(e) {
+        var dataItem = this.dataItem(e.item.index());
+        var schoolID = $("#ddlSchool").data("kendoDropDownList").value();
+
+        if (dataItem && schoolID) {
+            var egykliosID = dataItem.ΕΓΚΥΚΛΙΟΣ_ΚΩΔ;
+            $("#Grid").data("kendoGrid").dataSource.read({ egykliosId: egykliosID, schoolId: schoolID });
+        }
+        else {
+            $("#Grid").data("kendoGrid").dataSource.read({ egykliosId: 0, schoolId: 0 });
+        }
+    };
+
+    // School selection
+    function ddl2select(e) {
+        var dataItem = this.dataItem(e.item.index());
+        var schoolID = dataItem.SCHOOL_ID;
+        var egykliosID = $("#ddlEgyklios").data("kendoDropDownList").value();
+
+        if (schoolID && egykliosID) {
+            //var schoolID = dataItem.SCHOOL_ID;
+            $("#Grid").data("kendoGrid").dataSource.read({ egykliosId: egykliosID, schoolId: schoolID });
+        }
+        else {
+            $("#Grid").data("kendoGrid").dataSource.read({ egykliosId: 0, schoolId: 0 });
+        }
+    };
+
+    function data() {
+        var egykliosID = $("#ddlEgyklios").data("kendoDropDownList").value();
+        var schoolID = $("#ddlSchool").data("kendoDropDownList").value();
+
+        if (egykliosID && schoolID) {
+            return {
+                egykliosId: egykliosID,
+                schoolId: schoolID
+            };
+        }
+        else return {
+            egykliosId: 0,
+            schoolId: 0
+        };
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+            $("#Grid").data("kendoGrid").dataSource.read();
+        }
+    }
+
+</script>

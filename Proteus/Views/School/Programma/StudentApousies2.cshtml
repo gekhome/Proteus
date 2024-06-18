@@ -1,0 +1,131 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Μη καταχωρημένες απουσίες";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 12px;
+    }
+</style>
+
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 60px 5px 60px">
+    <span style="margin:5px 60px 5px 60px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Μη καταχωρημένες απουσίες</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+
+<div class="body-content" style="margin:10px 60px 5px 60px;font-size:small">
+
+    @(Html.Kendo().Grid<StudentApousies2ViewModel>()
+    .Name("grid")
+    .AutoBind(true)
+    .HtmlAttributes(new { style = "font-size:13px" })
+    .Navigatable()
+    .Filterable()
+    .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .Scrollable(scr => scr.Height(360))
+    .Columns(columns =>
+    {
+        columns.ForeignKey(f => f.ΚΩΔ_ΤΜΗΜΑ, (IEnumerable<ΤΜΗΜΑ>)ViewData["tmimata"], "ΤΜΗΜΑ_ΚΩΔ", "ΤΜΗΜΑ_ΟΝΟΜΑ").Width(20);
+        columns.ForeignKey(f => f.ΜΑΘΗΤΗΣ_ΚΩΔ, (IEnumerable<qrySTUDENT_TMIMA_SELECTOR>)ViewData["students"], "STUDENT_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(40).EditorTemplateName("TmimaStudentId");            
+        columns.Bound(c => c.ΑΠΟΥΣΙΕΣ).Width(15);
+        columns.Command(command => { command.Edit(); command.Destroy(); }).Width(26);
+    })
+    .ToolBar(toolBar =>
+    {
+        toolBar.Create();
+    })
+    .DataSource(ds => ds
+        .Ajax()
+        .Batch(false)
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΜΑ2_ΚΩΔ);
+            model.Field(p => p.ΚΩΔ_ΤΜΗΜΑ).DefaultValue((int)ViewData["defaultTmima"]);
+            model.Field(p => p.ΜΑΘΗΤΗΣ_ΚΩΔ).DefaultValue((int)ViewData["defaultStudent"]);
+        })
+        .Create(create => create.Action("Apousia2_Create", "Programma"))
+        .Read(read => read.Action("Apousia2_Read", "Programma"))
+        .Update(update => update.Action("Apousia2_Update", "Programma"))
+        .Destroy(destroy => destroy.Action("Apousia2_Destroy", "Programma"))
+    )
+    )
+
+</div>
+
+<div class="body-content" style="margin:10px 60px 5px 60px;font-size:small">
+    @(Html.Kendo().PanelBar()
+        .Name("Help")
+        .Items(items =>
+        {
+            items.Add()
+                .HtmlAttributes(new { style="font-size:14px" })
+                .Text("Τι είναι οι μη καταχωρημένες απουσίες")
+                .Selected(true)
+                .Expanded(false)
+                .Content(
+                @<text>
+                    <div style="margin-left:6px;margin-right:6px;font-size:14px">
+                        <font style="font-family:'Segoe UI';font-size:large">Απουσίες εκτός ωρολόγιου προγράμματος</font>
+                        <p></p>
+                        Απουσίες που τυχόν δεν έχουν καταχωρηθεί αναλυτικά στην αντίστοιχη καρτέλα "Απουσίες σπουδαστών"
+                        μπορούν να καταχωρηθούν εδώ ως σύνολο (μία εγγραφή).
+                        <br />
+                        Αυτό εφαρμόζεται στις περιπτώσεις σπουδαστών που έχουν έλθει στο ΙΕΚ από μετεγγραφή
+                        και χρειάζεται για τον υπολογισμό των ωρών που πραγματοποίηθηκαν από κάθε σπουδαστή.
+                        Ο υπολογισμός αυτός χρησιμοποιείται στην έκδοση των Β.Ε.Κ.
+                    </div>
+                    <p></p>
+                </text>);
+        })
+    )
+</div>
+
+    <script>
+        function filterStudents() {
+            return {
+                tmimaId: $("#ΚΩΔ_ΤΜΗΜΑ").data("kendoDropDownList").value()
+            };
+        }
+    </script>
+
+    <script type="text/javascript">
+
+        function RefreshGrid(e) {
+            var grid = $("#grid").data("kendoGrid");
+            grid.dataSource.read();
+
+        }
+
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "<br/>";
+                        });
+                    }
+                });
+                MessageBoxAlert(message, "Σφάλμα");
+            }
+        }
+
+    </script>
+

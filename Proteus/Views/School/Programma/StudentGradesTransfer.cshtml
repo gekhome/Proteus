@@ -1,0 +1,405 @@
+﻿@model IEnumerable<Proteus.Models.StudentGradesViewModel>
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Μεταφορά βαθμολογιών";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 11px;
+    }
+    .k-calendar {
+        font-size: 12px;
+    }
+</style>
+
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Μεταφορά και επεξεργασία βαθμολογιών σπουδαστών</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+    <button class="btn btn-primary" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="Instructions()">Οδηγίες</button>
+</div>
+
+<div class="body-content" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:medium;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Επιλογή τμήματος προορισμού</font>
+    </span>
+
+        @(Html.Kendo().Grid<sqlTmimataViewModel>()
+        .Name("Master")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΤΜΗΜΑ_ΟΝΟΜΑ).Width(20).Groupable(false);
+            columns.Bound(c => c.ΠΕΡΙΟΔΟΣ).Width(15);
+            columns.Bound(c => c.TERM).Width(10);
+            columns.Bound(c => c.EIDIKOTITA_TEXT).Width(60)
+                .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(c => c.ΤΜΗΜΑ_ΚΩΔ).Width(10).Hidden();
+            columns.Bound(c => c.EIDIKOTITA_ID).Width(10).Hidden();
+            columns.Bound(c => c.TERM_ID).Width(10).Hidden();
+        })
+        .Navigatable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Selectable()
+        .Filterable()
+        .HtmlAttributes(new { style = "font-size:12px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(200))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΤΜΗΜΑ_ΚΩΔ);
+        })
+        .Read(read => read.Action("Tmimata_Read", "Programma"))
+        .Aggregates(a =>
+        {
+            a.Add(p => p.EIDIKOTITA_TEXT).Count();
+        })
+        .Events(events => events.Error("error_handler"))
+        )
+        .Events(events => events.Change("change"))
+        )
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:14px;background-color:dimgray;padding:4px 4px 4px 4px;min-height:40px">
+    <label style="font-size:14px;font-weight:bold;color:white;margin-top:4px">Σπουδαστής : </label>
+    @(Html.Kendo().DropDownList()
+        .Name("ddlstudent")
+        .DataTextField("ΟΝΟΜΑΤΕΠΩΝΥΜΟ")
+        .DataValueField("STUDENT_ID")
+        .HtmlAttributes(new { style = "width:420px;font-size:12px;font-weight:bold" })
+        .OptionLabel("Επιλογή σπουδαστή...")
+        .AutoBind(false)
+        .Enable(false)
+        .DataSource(source => { source.Read(read => { read.Action("TmimaStudentsRead", "Programma").Data("filterStudents"); }).ServerFiltering(true); })
+        .Events(e =>
+        {
+            e.Select("ddlselect");
+        })
+    )
+
+    <span style="float:right;font-family:'Segoe UI';font-size:12px;margin-left:5px">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="insertGrades()" value="Εισαγωγή μαθημάτων"
+               class="btn btn-default" title="Εισάγει τα μαθήματα για το επιλεγμένο τμήμα ώστε να καταχωρηθούν οι βαθμοί" />
+    </span>
+    <span style="float:right;font-family:'Segoe UI';font-size:12px;margin-left:5px">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="removeGrades()" value="Διαγραφή βαθμολογιών" 
+               class="btn btn-default" title="Διαγράφει τις βαθμολογίες του σπουδαστή για το επιλεγμένο τμήμα" />
+    </span>
+    <span style="float:right;font-family:'Segoe UI';font-size:12px;margin-left:5px">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="transferGrades()" value="Μεταφορά βαθμολογιών" 
+               class="btn btn-default" title="Μεταφέρει τις βαθμολογίες του σπουδαστή στο επιλεγμένο τμήμα από το πιο πρόσφατο του ίδιου εξαμήνου" />
+    </span>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+
+        @(Html.Kendo().Grid(Model)
+        .Name("Child")
+        .AutoBind(false)
+        .HtmlAttributes(new { style = "font-size:12px" })
+        .Navigatable()
+        .Filterable()
+        .Editable(editable => editable.Mode(GridEditMode.InCell).CreateAt(GridInsertRowPosition.Top).DisplayDeleteConfirmation(false))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(240))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΚΩΔ_ΜΑΘΗΜΑ, (IEnumerable<sqlIEK_LESSONS>)ViewData["lessons"], "LESSON_ID", "LESSON_DESC")
+                .Width(50).EditorTemplateName("GradesLessonId");
+            columns.Bound(c => c.ΒΑΘΜΟΣ_ΠΡΟΟΔΟΥ).Width(10).Filterable(false);
+            columns.Bound(c => c.ΒΑΘΜΟΣ_ΤΕ).Width(10).Filterable(false);
+            columns.Bound(c => c.ΒΑΘΜΟΣ_ΕΠ).Width(10).Filterable(false);
+            columns.Bound(c => c.ΒΑΘΜΟΣ_ΜΟ).Width(14).Filterable(false).HtmlAttributes(new { style = "font-weight:bold" }).Title("ΜΟ (όχι μικτά)");
+            columns.ForeignKey(f => f.ΧΑΡΑΚΤΗΡΙΣΜΟΣ, (IEnumerable<ΜΑΘΗΜΑ_ΧΑΡΑΚΤΗΡΙΣΜΟΣ>)ViewData["lesson_tags"], "ΧΑΡΑΚΤΗΡΙΣΜΟΣ_ΚΩΔ", "ΧΑΡΑΚΤΗΡΙΣΜΟΣ_ΛΕΚΤΙΚΟ").Width(25);
+            columns.Command(command => command.Destroy()).Width(18);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+            toolBar.Save();
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(true)
+            .PageSize(30)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΜΒ_ΚΩΔ);
+                model.Field(p => p.ΧΑΡΑΚΤΗΡΙΣΜΟΣ).DefaultValue(1);
+                model.Field(p => p.ΚΩΔ_ΜΑΘΗΜΑ).DefaultValue((int)ViewData["defaultLesson"]);
+                model.Field(p => p.ΒΑΘΜΟΣ_ΠΡΟΟΔΟΥ).DefaultValue((float)0.00);
+                model.Field(p => p.ΒΑΘΜΟΣ_ΤΕ).DefaultValue((float)0.00);
+                model.Field(p => p.ΒΑΘΜΟΣ_ΕΠ).DefaultValue((float)0.00);
+                model.Field(p => p.ΒΑΘΜΟΣ_ΜΟ).DefaultValue((float)0.00).Editable(false);
+            })
+            .Create(create => create.Action("GradesTransfer_Create", "Programma").Data("data"))
+            .Read(read => read.Action("GradesTransfer_Read", "Programma").Data("data"))
+            .Update(update => update.Action("GradesTransfer_Update", "Programma").Data("data"))
+            .Destroy(destroy => destroy.Action("GradesTransfer_Destroy", "Programma"))
+            .Events(events => events.Error("error_handler"))
+        )
+        )
+</div>
+
+<div id="modalWindow">
+    <div style="margin-left:10px;margin-top:10px;font-family:'Segoe UI';font-size:14px">
+        <p>
+            <b>Η σελίδα αυτή έχει διπλή λειτουργία.</b><br />
+            <ol>
+                <li>
+                    Εδώ μεταφέρουμε τις βαθμολογίες ενός σπουδαστή που έχουν καταχωρηθεί σε άλλο τμήμα ίδιου εξαμήνου σπουδών.
+                    Χρησιμοποιείται στην περίπτωση που ένας σπουδαστής εγγράφεται πάλι στο ίδιο εξάμηνο σπουδών και έχει κάποια
+                    μαθήματα κατοχυρωμένα από το προηγούμενο τμήμα.
+                </li>
+                <li style="margin-top:5px">
+                    Ή σελίδα αυτή συνιστά μια εναλλακτική οθόνη καταχώρησης βαθμολογιών. Η διαφορά με τη σελίδα "Καταχώρηση βαθμολογιών" 
+                    είναι ότι εδώ η καταχώρηση γίνεται για κάθε σπουδαστή ξεχωριστά και για όλα τα μαθήματα, σε αντίθεση με την άλλη οθόνη,
+                    όπου η καταχώρηση γίνεται ανά μάθημα για όλους τους σπουδαστές ενός τμήματος.
+                </li>
+            </ol>
+        </p>
+        <p></p>
+        <p>
+            Για να κάνουμε μεταφορά των βαθμών ενός σπουδαστή, επιλέγουμε πρώτα το τμήμα προορισμού, που είναι το τμήμα στο οποίο είναι
+            εγγεγραμμένος τώρα. Στη μεσαία (γκρίζα) γραμμή εντολών επιλέγουμε από το πλαίσιο το σπουδαστή. Τέλος πατάμε το κουμπί
+            "Μεταφορά βαθμολογιών". Εάν βρεθούν, αυτές εμφανίζονται στο κάτω πλέγμα, στο οποίο μπορούμε να κάνουμε περαιτέρω επεξεργασία
+            των βαθμολογιών.<i> Οι βαθμοί μεταφέρονται από το πιο πρόσφατο τμήμα (πρόσφατη περίοδο) ίδιου εξαμήνου με το επιλεγμένο</i>.
+        </p>
+        <p style="margin-top:5px">
+            Για να καταχωρήσουμε βαθμολογίες των σπουδαστών, σε αυτή τη σελίδα, επιλέγουμε όπως πριν το τμήμα προοσρισμού. Στη συνέχεια,
+            επιλέγουμε κάθε φορά ένα σπουδαστή από τη γραμμή εντολών. Πατάμε το κουμπί "Εισαγωγή μαθημάτων" που βρίσκεται στο δεξιό
+            άκρο της γραμμής. Στο κάτω πλέγμα, εμφανίζονται τότε, όλα τα μαθήματα του επιλεγμένου τμήματος για το σπουδαστή αυτό.
+        </p>
+        <p style="margin-top:5px">
+            Όσα μαθήματα έχουν ήδη βαθμολογίες, αυτές μένουν ως έχουν. Τα μαθήματα που δεν έχουν βαθμολογίες εμφανίζονται με μηδενικούς
+            βαθμούς. Η επεξεργασία των δεδομένων γίνεται ακριβώς με τον ίδιο τρόπο με αυτόν της σελίδας "Καταχώρηση βαθμολογιών".
+        </p>
+    </div>
+    <div style="margin-left:0px;margin-top:20px;text-align:center;">
+        <button id="close" class="k-button" style="margin-left:5px;font-size:14px">Κλείσιμο</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        wnd = $("#modalWindow").kendoWindow({
+            title: "Σύντομες οδηγίες εργασίας",
+            modal: true,
+            visible: false,
+            resizable: true,
+            height: 540,
+            width: 700
+        }).data("kendoWindow");
+    });
+
+    function Instructions() {
+        // Open user-dialog window
+        wnd.center().open();
+
+        $("#close").click(function () {
+            wnd.close();
+        });
+    }
+</script>
+
+<script type="text/javascript">
+
+    function transferGrades() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var studentID = $("#ddlstudent").data("kendoDropDownList").value();
+        var tmimaID = 0;
+        if (dataItem) {
+            tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        }
+        if (tmimaID > 0 && studentID > 0) {
+            $.ajax({
+                url: '@Url.Action("TransferGrades", "Programma")?tmimaId=' + tmimaID + '&studentId=' + studentID,
+                type: 'GET',
+                data: "",
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data != "") MessageBoxAlert(data);
+                    $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, studentId: studentID });
+                },
+                error: function () {
+                    MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+                }
+            });
+        }
+        else {
+            MessageBoxAlert("Πρέπει να επιλέξετε τμήμα και σπουδαστή πρώτα.");
+        }
+    };
+
+    function removeGrades() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var studentID = $("#ddlstudent").data("kendoDropDownList").value();
+        var tmimaID = 0;
+        var tmimaName = "";
+        if (dataItem) {
+            tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+            tmimaName = dataItem.ΤΜΗΜΑ_ΟΝΟΜΑ;
+        }
+        if (tmimaID > 0 && studentID) {
+            MessageBoxConfirm("Είστε σίγουροι ότι θελετε διαγραφή των βαθμών του σπουδαστή για το τμήμα " + tmimaName + ";").done(function () {
+                $.ajax({
+                    url: '@Url.Action("RemoveGrades", "Programma")?tmimaId=' + tmimaID + '&studentId=' + studentID,
+                    type: 'GET',
+                    data: "",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data != "") MessageBoxAlert(data);
+                        $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, studentId: studentID });
+                    }
+                });
+            }).fail(function () {
+                return;
+            });
+        }
+        else {
+            MessageBoxAlert("Πρέπει να επιλέξετε τμήμα και σπουδαστή πρώτα.");
+        }
+    };
+
+    function insertGrades() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var studentID = $("#ddlstudent").data("kendoDropDownList").value();
+        var tmimaID = 0;
+        if (dataItem) {
+            tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        }
+        if (tmimaID > 0 && studentID > 0) {
+            $.ajax({
+                url: '@Url.Action("InsertLessons", "Programma")?tmimaId=' + tmimaID + '&studentId=' + studentID,
+                type: 'GET',
+                data: "",
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    if (data != "") MessageBoxAlert(data);
+                    $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, studentId: studentID });
+                },
+                error: function () {
+                    MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+                }
+            });
+        }
+        else {
+            MessageBoxAlert("Πρέπει να επιλέξετε τμήμα και σπουδαστή πρώτα.");
+        }
+    };
+
+</script>
+
+<script type="text/javascript">
+
+    function ddlselect(e) {
+        var dataItem = this.dataItem(e.item.index());
+        var studentID = dataItem.STUDENT_ID;
+
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataRow = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataRow.ΤΜΗΜΑ_ΚΩΔ;
+
+        $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, studentId: studentID });
+        $("#Child").css("display", "block");
+    };
+
+    function filterStudents() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        return {
+            tmimaId: tmimaID,
+        }
+    }
+
+    function filterLessons() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var eidikotitaID = dataItem.EIDIKOTITA_ID;
+        var termID = dataItem.TERM_ID;
+        return {
+            eidikotitaId: eidikotitaID,
+            termId: termID
+        }
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#Child").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        var eidikotitaID = dataItem.EIDIKOTITA_ID;
+        var termID = dataItem.TERM_ID;
+
+        var dropdownlist = $("#ddlstudent").data("kendoDropDownList");
+        dropdownlist.dataSource.read();
+        dropdownlist.enable();
+
+        var studentID = $("#ddlstudent").data("kendoDropDownList").value();
+
+        $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, studentId: studentID });
+        $("#Child").css("display", "block");
+    }
+
+    function data() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var studentID = $("#ddlstudent").data("kendoDropDownList").value();
+
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        return {
+            tmimaId: tmimaID,
+            studentId: studentID
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        $("#Child").data("kendoGrid").dataSource.read();
+    }
+
+</script>
+
+
+

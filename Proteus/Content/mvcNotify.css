@@ -1,0 +1,92 @@
+﻿/* Notification styles
+-----------------------------------------------------------*/
+#mvcNotify
+{
+    z-index: 950;
+    /*padding: 10px 10px 0px 0px;*/
+    /*padding: 12px 10px 10px 30px;*/
+    /*margin-top: 0px;*/
+    /*box-shadow: 5px 5px 10px #000;*/
+    position:absolute;
+    display: none;
+    width: 550px;
+    /*min-height:60px;*/
+
+    /*position: fixed;*/
+	/*top: 0px;
+	z-index: 1100;
+    right: 10px;
+    margin: 5px auto;
+	width: 500px;*/
+}
+
+@media (max-width: 499px) {
+#mvcNotify
+    {
+        right: 0px;
+	    margin: 0px;
+	    width: 100%;
+    }
+}
+
+#mvcNotify .messagebox
+{
+	padding: 5px 10px 5px 28px;
+	box-shadow: 5px 5px 10px #000;
+	margin: 5px 10px 5px 5px;
+    /*min-height: 30px;*/
+}
+
+#mvcNotify .success
+{
+	color: #060;
+	background: #cfc url(Images/ok.gif) no-repeat 8px 12px;
+}
+
+#mvcNotify .warning
+{
+	color: #c60;
+	background: #ffc url(Images/warn.gif) no-repeat 8px 12px;
+}
+
+#mvcNotify .error
+{
+	color: #c00;
+	background: #fcc url(Images/fail.gif) no-repeat 8px 12px;
+}
+
+#mvcNotify .info
+{
+	color: #fff;
+	background: #3560D8 url(Images/info.png) no-repeat 8px 12px;
+}
+
+/* Notification styles
+-----------------------------------------------------------*/
+/*.notificationbox
+{
+    z-index: 500;
+    padding: 12px 10px 10px 30px;
+    margin-top: 10px;
+    box-shadow: 5px 5px 10px #000;
+    display: none;
+    width: 550px;
+}
+ 
+.nb-success
+{
+color: #060;
+    background: #cfc url(images/ok.gif) no-repeat 8px 12px;
+}
+ 
+.nb-error
+{
+color: #c00;
+    background: #fcc url(images/fail.gif) no-repeat 8px 12px;
+}
+ 
+.nb-warning
+{
+color: #c60;
+    background: #ffc url(images/warn.gif) no-repeat 8px 12px;
+}*/

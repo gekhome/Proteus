@@ -1,0 +1,101 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "ΒΕΚ σπουδαστών";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 10px;
+    }
+</style>
+
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Μητρώο ΒΕΚ σπουδαστών</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Εκτύπωση", "XStudentBekListPrint", "Admin", new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })</span>
+</div>
+
+
+    <div class="body-content" style="margin:5px 30px 5px 30px;font-size:small">
+
+        @(Html.Kendo().Grid<StudentBekViewModel>()
+        .Name("grid")
+        .AutoBind(true)
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })
+        .Navigatable()
+        .Filterable()
+        .Groupable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .Scrollable(scr => scr.Height(420))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΙΕΚ, (IEnumerable<SYS_SCHOOLS>)ViewData["schools"], "SCHOOL_ID", "SCHOOL_NAME").Width(20);
+            columns.ForeignKey(f => f.ΕΙΔΙΚΟΤΗΤΑ, (IEnumerable<SYS_EIDIKOTITES_IEK>)ViewData["eidikotites"], "EIDIKOTITA_ID", "EIDIKOTITA_TEXT").Width(40);
+            columns.ForeignKey(f => f.ΜΑΘΗΤΗΣ_ΚΩΔ, (IEnumerable<qrySTUDENT_BEK_SELECTOR>)ViewData["students"], "STUDENT_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(40);
+            columns.Bound(c => c.ΑΡ_ΒΙΒΛΙΟΥ_ΒΕΚ).Width(12).Groupable(false).Filterable(false);
+            columns.Bound(c => c.ΗΜΝΙΑ_ΕΚΔΟΣΗΣ_ΒΕΚ).Width(14).Groupable(false);
+            columns.Bound(c => c.ΜΑΘΗΤΗΣ_ΒΕΚ_ΚΩΔ).Width(10).Hidden();
+            columns.Template(
+                @<text></text>)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("XStudentBekEdit", "Admin") + "?bekId=#=ΜΑΘΗΤΗΣ_ΒΕΚ_ΚΩΔ#' target = _blank><span class=\"k-icon k-edit\"></span>Στοιχεία ΒΕΚ</a>"
+            ).Width(18);
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .PageSize(60)
+            .ServerOperation(true)
+            .Model(model =>
+            {
+                model.Id(p => p.ΜΑΘΗΤΗΣ_ΒΕΚ_ΚΩΔ);
+            })
+            .Read(read => read.Action("Bek_Read", "Admin"))
+            //.Group(group => group.Add(p => p.ΙΕΚ))
+        )
+        )
+
+</div>
+
+    <script>
+        function filterStudents() {
+            return {
+                tmimaId: $("#ΚΩΔ_ΤΜΗΜΑ").data("kendoDropDownList").value()
+            };
+        }
+    </script>
+
+    <script type="text/javascript">
+
+        function RefreshGrid(e) {
+            var grid = $("#grid").data("kendoGrid");
+            grid.dataSource.read();
+
+        }
+
+        function error_handler(e) {
+            if (e.errors) {
+                var message = "";
+                $.each(e.errors, function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors, function () {
+                            message += this + "<br/>";
+                        });
+                    }
+                });
+                MessageBoxAlert(message, "Σφάλμα");
+            }
+            RefreshGrid(e);
+        }
+
+    </script>
+

@@ -1,0 +1,224 @@
+﻿@model Proteus.Models.UserStudentViewModel
+
+@{
+    ViewBag.Title = "Είσοδος χρήστη";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style>
+        .k-textbox {
+            display: block;
+            width: 100%;
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.428571429;
+            color: #555555;
+            vertical-align: middle;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        }
+
+            .k-textbox:focus {
+                border-color: #66afe9;
+                outline: 0;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+            }
+    </style>
+</head>
+<body>
+    <p style="padding:20px 10px 20px 10px"></p>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            @Html.ValidationSummary(true)
+            <fieldset>
+                <legend style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Καρτέλα εισόδου υποψήφιου σπουδαστή</legend>
+
+                <table class="col-md-8" style="border:solid;border-width:thin;margin:10px 0px 10px 0px">
+                    <tr>
+                        <th style="background-color:#494949;padding-left:20px">
+                            <p></p>
+                            <img src="~/Images/metro/user-login-white.png" width="60" height="60" style="margin:0px 20px 0px 10px" />
+                            <font style="font-family:'Segoe UI';font-size:xx-large;color:white;">Είσοδος</font>
+                            <p></p>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p></p>
+                            <div class="form-group" style="margin-left:1px">
+                                @Html.LabelFor(model => model.USERNAME, new { @class = "control-label col-md-4" })
+                                <div class="col-md-6">
+                                    <label class="form-control smartShortText" style="min-height:20px;width:300px; background-color:#EEE"
+                                           title="@Model.USERNAME">@Html.Raw(Model.USERNAME)</label>
+                                </div>
+                            </div>
+                            <p></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p></p>
+                            <div class="form-group" style="margin-left:1px">
+                                @Html.LabelFor(model => model.PASSWORD, new { @class = "control-label col-md-4" })
+                                <div class="col-md-6">
+                                    <label class="form-control smartShortText" style="min-height:20px;width:300px; background-color:#EEE"
+                                           title="@Model.PASSWORD">@Html.Raw(Model.PASSWORD)</label>
+                                </div>
+                            </div>
+                            <p></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p></p>
+                            <div class="form-group" style="margin-left:1px;margin-top:20px">
+                                @Html.LabelFor(model => model.USER_AFM, new { @class = "control-label col-md-4" })
+                                <div class="col-md-8">
+                                    <label class="form-control smartShortText" style="min-height:20px;width:300px; background-color:#EEE"
+                                           title="@Model.USER_AFM">@Html.Raw(Model.USER_AFM)</label>
+                                </div>
+                            </div>
+                            <p></p>
+                        </td>
+                    </tr>
+                    @*<tr>
+                        <td>
+                            <p></p>
+                            <div class="form-group" style="margin-left:1px;margin-bottom:20px">
+                                @Html.LabelFor(model => model.SCHOOL_ID, new { @class = "control-label col-md-4" })
+                                <div class="col-md-8">
+                                    @(Html.Kendo().DropDownListFor(model => model.SCHOOL_ID)
+                                        .Name("SCHOOL_ID")
+                                        .DataTextField("SCHOOL_NAME")
+                                        .DataValueField("SCHOOL_ID")
+                                        .HtmlAttributes(new { style = "width:300px;" })
+                                        .OptionLabel("Επιλέξτε...")
+                                        .AutoBind(true)
+                                        .DataSource(source =>
+                                        {
+                                            source.Read(read => { read.Action("GetSchools", "USER_STUDENTS"); });
+                                        })
+                                    )
+                                    @Html.ValidationMessageFor(model => model.SCHOOL_ID)
+                                </div>
+                            </div>
+                            <p></p>
+                        </td>
+                    </tr>*@
+                </table>
+
+                    <div class="form-group">
+                        <div style="float:left;" class="col-md-12">
+                            <input style="font-family:'Segoe UI';font-size:18px" type="submit" value="Είσοδος" class="btn btn-default" />
+                            <span style="margin:0px 5px 5px 5px;font-family:'Segoe UI';font-size:18px">
+                                @Html.ActionLink("Αρχική", "Index", "Home", null, new { @class = "btn btn-default", style = "font-size:18px", target = "_blank" })
+                            </span>
+
+                        </div>
+                    </div>
+        </fieldset>
+    </div>
+    }
+
+    @*<div class="row" style="margin-top:10px;margin-left:4px;max-width:620px">
+        @(Html.Kendo().PanelBar()
+        .Name("Help")
+        .HtmlAttributes(new { style = "width:760px" })
+        .Items(items =>
+        {
+            items.Add()
+                .Text("Οδηγίες (παρακαλούμε διαβάστε τις)")
+                .Selected(true)
+                .Expanded(false)
+                .Content(
+                @<text>
+                    <div style="margin-left:6px;margin-right:6px">
+                        <img src="~/Images/metro/orderedList1.png" />
+                        <font style="font-family:'Segoe UI';font-size:large">Γιατί πρέπει να δώσω εδώ το ΑΦΜ μου;</font>
+                        <ul>
+                            <li>
+                                Το ΑΦΜ σας είναι η 'ταυτότητά σας' για την Εφαρμογή. Το ορίζετε μόνο μια φορά στο σημείο αυτό,
+                                οπότε η εφαρμογή συνδέει το λογαριασμό σας με όποια πληροφορία αφορά ΕΣΆΣ ΚΑΙ ΜΌΝΟ, όπως για
+                                παράδειγμα οι αιτήσεις και οι δηλώσεις στοιχείων σας.
+                            </li>
+                            <li>
+                                Το ΑΦΜ που ορίζετε εδώ, ελέγχεται για την εγκυρότητά του και μόνο αν είναι έγκυρο μπορείτε να
+                                χρησιμοποιήσετε την Εφαρμογή.
+                            </li>
+                            <li>
+                                Επιπλέον, μέσω του ΑΦΜ, μπορεί η Εφαρμογή να ανακτήσει το όνομα χρήστη και κωδικό πρόσβασης
+                                που ορίσατε, σε περίπτωση που τα ξεχάσετε.
+                            </li>
+                            <li>
+                                Μπορείτε να δημιουργήσετε ΜΟΝΟ ΕΝΑΝ προσωπικό λογαριασμό, ο οποίος ΔΕΝ μπορεί να αλλάξει, π.χ.
+                                να αλλάξετε 'όνομα χρήστη ή/και 'κωδικό πρόσβασης'.
+                            </li>
+                            <li>
+                                Μπορείτε, όμως, να δημιουργήσετε απεριόριστο αριθμό αιτήσεων μαζί με τα αντίστοιχα 'πακέτα'
+                                προϋπηρεσιών σας. Όλα αυτά μαζί συνιστούν το δικό σας 'Προσωπικό Φάκελο Δεδομένων'. Η εφαρμογή
+                                αναγνωρίζει τον ΠΦΔ σας μέσω του ΑΦΜ.
+                            </li>
+                        </ul>
+                        <p></p>
+                        <img src="~/Images/metro/orderedList2.png" />
+                        <font style="font-family:'Segoe UI';font-size:large">Τι είναι το όνομα χρήστη;</font>
+                        <p>
+                            Το 'όνομα χρήστη' (Username) είναι ένα ψευδώνυμο που χρησιμοποιείται για να αποκτήσει
+                            ένας χρήστης πρόσβαση σε ένα σύστημα ηλεκτρονικού υπολογιστή.
+                            Τα ονόματα χρήστη και οι κωδικοί πρόσβασης απαιτούνται στα συστήματα πολλών χρηστών.
+                            Στα περισσότερα τέτοια συστήματα οι χρήστες μπορούν να επιλέξουν
+                            το δικό τους όνομα χρήστη και κωδικό πρόσβασης.
+                        </p>
+                        <p>
+                            Συνήθως πρέπει να δίνεται με λατινικούς πεζούς χαρακτήρες. Ακολουθούν ενδεικτικά παραδείγματα:
+                        </p>
+                        <p>
+                            Αν το κανονικό μας όνομα είναι π.χ. Νίκος Παπαδημητρίου το όνομα χρήστη μπορει να είναι:
+                        </p>
+                        <p>
+                            n.papadimitriou ή npapad ή NikosPap ή npapadimitriou ή οτιδήποτε άλλο, τέτοιο ώστε να το θυμάστε εύκολα.
+                        </p>
+                        <p></p>
+                        <img src="~/Images/metro/orderedList3.png" />
+                        <font style="font-family:'Segoe UI';font-size:large">Τι είναι ο κωδικός πρόσβασης;</font>
+                        <p>
+                            O κωδικός πρόσβασης (Password) είναι ένα σύνολο μυστικών χαρακτήρων ή λέξεων που απαιτείται να δοθούν
+                            για να αποκτήσει κάποιος πρόσβαση σε έναν υπολογιστή ή στα αρχεία και τα προγράμματα ενός συστήματος.
+                            Οι κωδικοί πρόσβασης εξασφαλίζουν ότι μόνο οι εξουσιοδοτημένοι χρήστες μπορούν να έχουν πρόσβαση
+                            σε συγκεκριμένες πληροφορίες.
+                        </p>
+                        <p>
+                            Και αυτό, συνήθως δίνεται με λατινικούς χαρακτήρες (πεζούς ή συνδυασμό πεζών/κεφαλαίων) και άλλα
+                            σύμβολα του πληκτρολογίου. Για την εφαρμογή 'Hermes' μπορείτε να εισάγετε μέχρι 20 χαρακτήρες. Για
+                            δική σας ευκολία, όμως, καλόν είναι να μη ξεπερνάτε τους 6 χαρακτήρες.
+                        </p>
+                    </div>
+                    <p></p>
+                </text>);
+        })
+        )
+    </div>*@
+
+</body>
+
+</html>
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

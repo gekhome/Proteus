@@ -1,0 +1,172 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Ενιαίοι κλάδοι";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+    @Html.AntiForgeryToken()
+    <div class="page-header" style="margin:5px 30px 5px 30px">
+        <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+            <font style="color:#494949;float:left;font-family:'Segoe UI'">Κλάδοι ενοποίησης ειδικοτήτων</font>
+        </span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+        <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+    </div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+        @(Html.Kendo().Grid<KladosUnifiedViewModel>()
+        .Name("Master")
+        .Columns(columns =>
+        {
+            columns.Bound(m => m.ΚΛΑΔΟΣ_ΕΝΙΑΙΟΣ).Groupable(false).Width(110)
+                .ClientFooterTemplate("Συνολ. πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.ForeignKey(f => f.ΚΛΑΔΟΣ, (IEnumerable<SYS_KLADOS>)ViewData["kladoi"], "KLADOS_ID", "KLADOS_NAME").Width(20);            
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(40);
+        })
+
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .Filterable()
+        .Groupable()
+        .Selectable()
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })                
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(200))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+            .Ajax()
+            .PageSize(60)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΚΛΑΔΟΣ_ΕΝΙΑΙΟΣ_ΚΩΔ);
+                model.Field(p => p.ΚΛΑΔΟΣ).DefaultValue(1);                
+            })
+            .Create(create => create.Action("KladosUnified_Create", "Setup"))
+            .Read(read => read.Action("KladosUnified_Read", "Setup"))
+            .Update(update => update.Action("KladosUnified_Update", "Setup"))
+            .Destroy("KladosUnified_Destroy", "Tools")
+            .Events(events => events.Error("error_handler1"))                                           
+            .Aggregates(a =>
+            {
+                a.Add(p => p.ΚΛΑΔΟΣ_ΕΝΙΑΙΟΣ).Count();
+            })
+        ) @* datasource*@
+        .Events(e => e.Change("change"))
+    )
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+    @(Html.Kendo().Grid<sqlEidikotitesKUViewModel>()
+        .Name("Child")
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.EIDIKOTITA_ID, (IEnumerable<sqlEidikotitesKUViewModel>)ViewData["sqlEidikotites2"], "EIDIKOTITA_ID", "EIDIKOTITA_PTYXIO").Width(120).Title("Ειδικότητα-Πτυχίο");
+            columns.Command(command => { command.Edit(); command.Destroy().Text("Απαλοιφή"); }).Width(36);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .Filterable()
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(220))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+        .Ajax()
+        .PageSize(40)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.EIDIKOTITA_ID);
+            model.Field(p => p.EIDIKOTITA_ID).DefaultValue(ViewData["sqlDefaultEidikotita2"]);
+        })
+        .Create(create => create.Action("sqlEidikotitaKU_Set", "Setup").Data("data"))
+        .Read(read => read.Action("sqlEidikotitaKU_Read", "Setup").Data("data"))
+        .Update(update => update.Action("sqlEidikotitaKU_Set", "Setup").Data("data"))
+        .Destroy(delete => delete.Action("sqlEidikotitaKU_Reset", "Setup").Data("data"))
+        .Events(events => events.Error("error_handler2"))
+    ) @* datasource*@
+    )
+</div>
+
+<script type="text/javascript">
+
+    function change(e) {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var klados_unifiedID = 0;
+        if (dataItem) {
+            klados_unifiedID = dataItem.ΚΛΑΔΟΣ_ΕΝΙΑΙΟΣ_ΚΩΔ;
+        }
+        //alert("Group ID : " + groupID);
+        $("#Child").data("kendoGrid").dataSource.read({ kladosunifiedId: klados_unifiedID });
+        $("#Child").css("display", "block");
+    }
+
+    function data() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            return { kladosunifiedId: dataItem.ΚΛΑΔΟΣ_ΕΝΙΑΙΟΣ_ΚΩΔ };
+        }
+        else {
+            return { kladosunifiedId: 0 };
+        }
+    }
+
+    function RefreshGridMaster(e) {
+        var grid = $("#Master").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#Child").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler1(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+            RefreshGridMaster(e);
+        }
+    }
+
+    function error_handler2(e) {
+        if (e.errors) {
+            var message = "Σφάλμα:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+            RefreshGrid(e);
+        }
+    }
+
+</script>

@@ -1,0 +1,267 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Βαθμολογίες εξαμήνου";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Αναλυτικές βαθμολογίες εξαμήνου</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+        @(Html.Kendo().Grid<sqlTmimataViewModel>()
+        .Name("Master")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΤΜΗΜΑ_ΟΝΟΜΑ).Width(20).Groupable(false);
+            columns.Bound(c => c.ΠΕΡΙΟΔΟΣ).Width(15);
+            columns.Bound(c => c.TERM).Width(10);
+            columns.Bound(c => c.EIDIKOTITA_TEXT).Width(60)
+                .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(c => c.ΤΜΗΜΑ_ΚΩΔ).Width(10).Hidden();
+        })
+        .Navigatable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Selectable()
+        .Filterable()
+        .HtmlAttributes(new { style = "display:block;font-size:12px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(200))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΤΜΗΜΑ_ΚΩΔ);
+        })
+        .Read(read => read.Action("Tmimata_Read", "Programma"))
+        .Aggregates(a =>
+        {
+            a.Add(p => p.EIDIKOTITA_TEXT).Count();
+        })
+        .Events(events => events.Error("error_handler"))
+        )
+        .Events(events => events.Change("change"))
+        )
+</div>
+
+<div class="body-content" style="margin:5px 30px 5px 30px;font-size:14px;background-color:dimgray;padding:4px 4px 4px 4px;min-height:40px">
+    <span style="margin-right:5px;float:right;font-family:'Segoe UI'">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="printGradesTable()" title="Εκτύπωση βαθμολογιών ανά ειδικότητα και περίοδο" value="Εκτύπωση ανά ειδικότητα" class="btn btn-default" />
+    </span>
+    <span style="margin-right:5px;float:right;font-family:'Segoe UI'">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="destroyGradesTable()" title="Διαγραφή πίνακα του επιλεγμένου τμήματος" value="Διαγραφή πίνακα" class="btn btn-default" />
+    </span>
+    <span style="margin-right:5px;float:right;font-family:'Segoe UI'">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="updateGradesTable()" title="Ενημέρωση πίνακα του επιλεγμένου τμήματος" value="Ενημέρωση πίνακα" class="btn btn-default" />
+    </span>
+    <span style="margin-right:5px;margin-left:5px;float:right;font-family:'Segoe UI'">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="createGradesTable()" title="Δημιουργία πίνακα του επιλεγμένου τμήματος" value="Δημιουργία πίνακα" class="btn btn-default" />
+    </span>
+    <div id="divLoading" style="margin:0px 0px 0px 0px;float:left;font-family:'Segoe UI';z-index: 30001;display:none">
+        <p id="message-icon" style="margin-left:5px;font-size:13px;color:#ffffff">
+            Διαδικασία σε εξέλιξη...<img id="ajax-icon" src="~/Images/other/progress4.gif" style="margin-left:5px;width:36px;height:36px">
+        </p>
+    </div>
+</div>
+
+<div class="body-content" style="margin:5px 30px 5px 30px">
+
+    @(Html.Kendo().Grid<StudentGradesReportViewModel>()
+    .Name("Child")
+    .AutoBind(false)
+    .HtmlAttributes(new { style = "font-size:12px" })
+    .Filterable()
+    .Groupable()
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .Scrollable(scr => scr.Height(260))
+    .Columns(columns =>
+    {
+        columns.Bound(f => f.FULLNAME).Width(35);
+        columns.Bound(f => f.LESSON_TEXT).Width(60);
+        columns.Bound(f => f.ΠΡΘ).Width(8).Filterable(false).Groupable(false);
+        columns.Bound(f => f.ΠΡΕ).Width(8).Filterable(false).Groupable(false);
+        columns.Bound(f => f.ΠΡΟΟΔΟΣ).Width(8).Filterable(false).Groupable(false);
+        columns.Bound(f => f.ΕΡΓΑΣΙΑ).Width(8).Filterable(false).Groupable(false);
+        columns.Bound(f => f.ΤΕΘ).Width(8).Filterable(false).Groupable(false);
+        columns.Bound(f => f.ΤΕΕ).Width(8).Filterable(false).Groupable(false);
+        columns.Bound(f => f.ΕΞΕΤΑΣΗ).Width(8).Filterable(false).Groupable(false);
+        columns.Bound(f => f.ΕΠ).Width(8).Filterable(false).Groupable(false);
+        columns.Bound(f => f.ΤΕΛΙΚΟΣ).Width(8).Filterable(false).Groupable(false);
+        columns.Template(@<text></text>)
+        .ClientTemplate(
+        "<a class=\"k-button k-button-icontext\" href='" + Url.Action("AllGradesReportPrint", "Programma") +
+        "?tmimaId=#=TMIMA_ID#&studentId=#=STUDENT_ID#' target = _blank><span class=\"k-icon k-justifyFull\"></span>Εκτύπωση</a>").Width(22);
+    })
+    .DataSource(ds => ds
+        .Ajax()
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.GRADES_ID);
+        })
+        .Read(read => read.Action("GradesReport_Read", "Programma").Data("data"))
+        )
+    )
+
+</div>
+
+<script type="text/javascript">
+
+    function destroyGradesTable() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            $('#divLoading').show();
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+            $.ajax({
+                url: '@Url.Action("DestroyGradesTable", "Programma")?tmimaId=' + tmimaID,
+                type: 'POST',
+                data: "",
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    $('#divLoading').hide();
+                    if (data != "") MessageBoxAlert(data);
+                    $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID });
+                },
+                error: function () {
+                    $('#divLoading').hide();
+                    MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+                }
+            });
+        }
+        else {
+            MessageBoxAlert("Για να γίνει η διαγραφή του πίνακα βαθμολογιών πρέπει πρώτα να επιλέξετε τμήμα.");
+        }
+    }
+
+    function createGradesTable() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            $('#divLoading').show();
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+            $.ajax({
+                url: '@Url.Action("CreateGradesTable", "Programma")?tmimaId=' + tmimaID,
+                type: 'POST',
+                data: "",
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    $('#divLoading').hide();
+                    if (data != "") MessageBoxAlert(data);
+                    $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID });
+                },
+                error: function () {
+                    $('#divLoading').hide();
+                    MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+                }
+            });
+        }
+        else {
+            MessageBoxAlert("Για να γίνει η δημιουργία του πίνακα βαθμολογιών πρέπει πρώτα να επιλέξετε τμήμα.");
+        }
+    }
+
+    function updateGradesTable() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            $('#divLoading').show();
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+            $.ajax({
+                url: '@Url.Action("UpdateGradesTable", "Programma")?tmimaId=' + tmimaID,
+                type: 'POST',
+                data: "",
+                contentType: 'application/json; charset=utf-8',
+                success: function (data) {
+                    $('#divLoading').hide();
+                    if (data != "") MessageBoxAlert(data);
+                    $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID });
+                },
+                error: function () {
+                    $('#divLoading').hide();
+                    MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+                }
+            });
+        }
+        else {
+            MessageBoxAlert("Για να γίνει η ενημέρωση του πίνακα βαθμολογιών πρέπει πρώτα να επιλέξετε τμήμα.");
+        }
+    }
+
+    function printGradesTable() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            var eidikotitaID = dataItem.EIDIKOTITA_ID;
+            var period = dataItem.ΠΕΡΙΟΔΟΣ;
+            //alert("Επιλεγμένες παράμετροι : " + eidikotitaID + ", " + period);
+            window.open('@Url.Action("AllGradesEidikotitaPrint", "Programma")?eidikotitaId=' + eidikotitaID + '&period=' + period);
+        }
+        else {
+            MessageBoxAlert("Για να γίνει η εκτύπωση του πίνακα βαθμολογιών πρέπει να επιλέξετε τμήμα της επιθυμητής ειδικότητας και περιόδου.");
+        }
+    }
+
+</script>
+
+<script type="text/javascript">
+
+        function RefreshGrid(e) {
+            var grid = $("#Master").data("kendoGrid");
+            grid.dataSource.read();
+        }
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID });
+        $("#Child").css("display", "block");
+    }
+
+    function data() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        return {
+            tmimaId: tmimaID
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+    }
+
+</script>
+
+
+

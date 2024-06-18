@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+@*@section banner {
+    @Html.Partial("~/Views/Shared/LayoutBanner")
+}*@
+@using Proteus.Notification
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+	<link href="@Url.Content("~/Content/kendo/2014.2.716/kendo.common.min.css")" rel="stylesheet" type="text/css" />
+	<link href="@Url.Content("~/Content/kendo/2014.2.716/kendo.dataviz.min.css")" rel="stylesheet" type="text/css" />
+	<link href="@Url.Content("~/Content/kendo/2014.2.716/kendo.default.min.css")" rel="stylesheet" type="text/css" />
+	<link href="@Url.Content("~/Content/kendo/2014.2.716/kendo.dataviz.default.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/mvcNotify.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Scripts/messagebox/messagebox.css")" rel="stylesheet" type="text/css" />
+
+	<script src="@Url.Content("~/Scripts/kendo/2014.2.716/jquery.min.js")"></script>
+	<script src="@Url.Content("~/Scripts/kendo/2014.2.716/kendo.all.min.js")"></script>
+	<script src="@Url.Content("~/Scripts/kendo/2014.2.716/kendo.aspnetmvc.min.js")"></script>
+	<script src="@Url.Content("~/Scripts/kendo.modernizr.custom.js")"></script>
+    <script src="@Url.Content("~/Scripts/cultures/kendo.culture.el-GR.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/mvcNotify.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/messagebox/messagebox.js")"></script>
+    <script src="@Url.Content("~/Scripts/custom/jspCustom.js")"></script>
+
+    <link rel="icon" href="@Url.Content("~/content/favicon.ico")" />
+    <script>
+    kendo.culture("el-GR");
+    </script>
+    <!-- mvcNotify script -->
+    <script type="text/javascript">
+        //Set autoclear of messages. Don't put this into $(document).ready.
+        //mvcNotify.autoClearTimeout = 0; //don't autoclear any types
+        mvcNotify.autoClearTimeout = 8000; //Unit of milliseconds. Requires mvcNotify.typesToAutoClear to be set to something (default behavior).
+        //mvcNotify.typesToConsoleLog = "all"; //Log all types to console.
+    </script>
+
+    <!-- Clock scripts -->
+    <script src="@Url.Content("~/Clock/coolclock.js")"></script>
+    <script src="@Url.Content("~/Clock/moreskins.js")"></script>
+    <script src="@Url.Content("~/Clock/excanvas.js")"></script>
+
+</head>
+<body style="background-color:whitesmoke">
+    <div id="mvcNotify" style="display: none;float:right;z-index:1024;position:absolute;top:8%;left:50%;right:3%;padding:10px 5px 5px 20px;">
+        @Html.RenderMessages()
+    </div>
+    <div class="navbar navbar-inverse navbar-fixed-top" style="max-height:52px">
+        <div class="body-content">
+            <div class="navbar-header" style="font-family:'Segoe UI';font-size:14px">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("Proteus >", "Index", "Home", null, new { @class = "navbar-brand" })
+            </div>
+            <div class="navbar-collapse collapse" style="font-family:'Segoe UI';font-size:16px">
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Αρχική", "Index", "Home")</li>
+                    <li>@Html.ActionLink("Περιγραφή", "About", "Home")</li>
+                    <li>@Html.ActionLink("Επικοινωνία", "Contact", "Home")</li>
+                </ul>
+                <div class="nav navbar-text navbar-right" style="float:right;color:white;vertical-align:middle;font-size:14px">
+                    Χρήστης: @Html.Raw((string)ViewBag.loggedUser)
+                    <input type="button" class="btn btn-danger" style="font-size:12px" value="Αποσύνδεση" onclick="location.href='@Url.Action("Logout", "Home" )'" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="banner" style="background-color:dimgray;padding-top:4px;max-height:64px">
+        <div class="row" style="background-color:transparent">
+            <div class="col-md-1">
+                <img src="~/images/proteus-logo-white.png" height="48" width="48" style="margin-top:4px">
+            </div>
+            <div class="col-md-4" style="background-color:transparent">
+                <p class="header" style="margin-top:2px;background-color:transparent;font-size:38px">P r o t e u s</p>
+            </div>
+            <div class="col-md-offset-6 col-md-1">
+                <canvas style="float:right" id="clockid" class="CoolClock:swissRail:30:0"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="body-content">
+        @RenderBody()
+        @RenderSection("footer", required: false)
+    </div>
+
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

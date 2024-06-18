@@ -1,0 +1,128 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models
+
+@{
+    ViewBag.Title = "Λογαριασμοί Σχολείων";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .k-grid .k-alt {
+        background-color: #e9e9e9; /* specify the alternate background-color */
+    }
+</style>
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 60px 5px 60px">
+    <span style="margin:5px 60px 5px 60px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Λογαριασμοί σχολείων</font>
+    </span>
+    <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>   
+    <span style="margin:5px 5px 5px 10px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Εκτύπωση", "SchoolAccountsPrint", "Setup", null, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })</span>
+    <span style="margin:5px 5px 5px 10px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Αλλαγή κωδικών", "CreatePasswords", "Setup", null, new { @class = "btn btn-danger", style = "font-size:14px" })</span>
+</div>
+<div class="body-content" style="margin:10px 60px 5px 60px">
+    @(Html.Kendo().Grid<UserSchoolViewModel>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.USERNAME).Groupable(false).Width(40)
+                .ClientFooterTemplate("Σύν. πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(c => c.PASSWORD).Groupable(false).Width(30);
+            columns.ForeignKey(c => c.USER_SCHOOLID, (IEnumerable<SYS_SCHOOLS>)ViewData["schools"], "SCHOOL_ID", "SCHOOL_NAME")               
+                .Groupable(false).Title("Σχολική Μονάδα").Width(60);
+            columns.Bound(c => c.ISACTIVE).Width(20).ClientTemplate("<input type='checkbox' #= ISACTIVE ? checked='checked':'' # class='chkbx' />").Width(20);
+            columns.Command(command => command.Destroy()).Width(32);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+            toolBar.Save();
+        })
+        .Editable(editable => editable.Mode(GridEditMode.InCell))
+        .Navigatable()
+        .Filterable()
+        .Selectable()
+        .Groupable()
+        .Scrollable(scr => scr.Height(380))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+        .Ajax()
+        .Batch(true)
+        .PageSize(40)
+        .ServerOperation(false)
+        .Events(events => events.Error("error_handler"))
+        .Model(model => {
+
+            model.Id(p => p.USER_ID);
+            model.Field(p => p.USER_SCHOOLID).DefaultValue(ViewData["defaultSchool"]);
+        })
+            .Create(create => create.Action("UserSchool_Create", "Setup"))
+            .Read(read => read.Action("UserSchool_Read", "Setup"))
+            .Update(update => update.Action("UserSchool_Update", "Setup"))
+            .Destroy(destroy => destroy.Action("UserSchool_Destroy", "Setup"))
+            .Events(events => events.Error("error_handler"))
+            .Aggregates(a =>
+            {
+                a.Add(p => p.USERNAME).Count();
+            })
+        )
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    )
+</div>
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        RefreshGrid(e);
+    }
+
+    // Date: 16-11-2018
+    // Listener for the state of the checkboxes.
+    // Required, otherwise changes do not take effect in batch mode of the grid.
+    // THIS IS IT! It works for any number of checkbox columns. All other solutions fail
+    // in batch editing mode of the grid.
+    // Solution link: https://stackoverflow.com/questions/17889049/adding-bindeable-checkbox-column-to-grid
+    $(function () {
+        $('#Grid').on('click', '.chkbx', function () {
+            var checked = $(this).is(':checked');
+            var grid = $('#Grid').data().kendoGrid;
+
+            grid.closeCell();
+            var dataItem = grid.dataItem($(this).closest('tr'));
+            var col = $(this).closest('td');
+
+            grid.editCell(col);
+            dataItem.set(grid.columns[col.index()].field, checked);
+            grid.closeCell(col);
+        });
+    });
+
+</script>
+
+
+
+
+
+

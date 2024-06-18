@@ -1,0 +1,108 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Κλάδοι-Ειδικότητες";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .k-grid .k-alt {
+        background-color: #e9e9e9; /* specify the alternate background-color */
+    }
+</style>
+<style>
+    .k-grid {
+        font-size: 10px;
+    }
+</style>
+
+
+    @Html.AntiForgeryToken()
+    <div class="page-header" style="margin:5px 30px 5px 30px">
+        <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+            <font style="color:#494949;float:left;font-family:'Segoe UI'">Κωδικολόγιο ειδικοτήτων εκπαιδευτών</font>
+        </span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+        <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+        <span style="margin:5px 5px 5px 10px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Εκτύπωση", "EidikotitesPrint", "Setup", null, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })</span>
+    </div>
+
+    <div class="body-content" style="margin:10px 30px 5px 30px">
+
+        @(Html.Kendo().Grid<EidikotitesViewModel>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(m => m.EIDIKOTITA_CODE).Width(12).Filterable(false);
+            columns.Bound(m => m.EIDIKOTITA_NAME).Groupable(false).Width(40)
+                .ClientFooterTemplate("Ολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(m => m.EIDIKOTITA_UNIFIED).Width(40);
+            columns.ForeignKey(f => f.KLADOS_UNIFIED, (IEnumerable<SYS_KLADOS_ENIAIOS>)ViewData["kladoiUnified"], "ΚΛΑΔΟΣ_ΕΝΙΑΙΟΣ_ΚΩΔ", "ΚΛΑΔΟΣ_ΕΝΙΑΙΟΣ").Width(35);
+            columns.ForeignKey(f => f.EIDIKOTITA_KLADOS_ID, (IEnumerable<SYS_KLADOS>)ViewData["kladoi"], "KLADOS_ID", "KLADOS_NAME").Width(12);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(34);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .HtmlAttributes(new { style="font-size:12px" })
+        .Filterable()
+        .Groupable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(400))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .DataSource(datasource => datasource
+            .Ajax()
+            .PageSize(60)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.EIDIKOTITA_ID);
+                model.Field(p => p.EIDIKOTITA_KLADOS_ID).DefaultValue(1);
+                model.Field(p => p.KLADOS_UNIFIED).DefaultValue(1);
+            })
+            .Create(create => create.Action("Eidikotita_Create", "Setup"))
+            .Read(read => read.Action("Eidikotita_Read", "Setup"))
+            .Update(update => update.Action("Eidikotita_Update", "Setup"))
+            .Destroy("Eidikotita_Destroy", "Setup")
+            .Events(events => events.Error("error_handler"))
+            .Aggregates(a =>
+            {
+                a.Add(p => p.EIDIKOTITA_NAME).Count();
+            })
+        ) @* datasource*@
+        )
+
+    </div>
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        RefreshGrid(e);
+    }
+
+</script>
+

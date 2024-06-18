@@ -1,0 +1,353 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Έλεγχος προγράμματος";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+
+<div class="page-header" style="margin:5px 20px 5px 20px">
+    <span style="margin:5px 20px 5px 20px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Έλεγχος και επεξεργασία ωρολόγιου προγράμματος</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 20px 5px 20px;background-color:dimgray;padding:4px 4px 4px 4px">
+    <label style="margin-left:5px;font-size:13px;font-weight:bold;color:white">Τμήμα : </label>
+    @(Html.Kendo().DropDownList()
+        .Name("ddltmima")
+        .DataTextField("ΤΜΗΜΑ_ΟΝΟΜΑ")
+        .DataValueField("ΤΜΗΜΑ_ΚΩΔ")
+        .HtmlAttributes(new { style = "width:320px;font-size:13px;font-weight:bold" })
+        .OptionLabel("Επιλογή τμήματος...")
+        .AutoBind(true)
+        .Enable(true)
+        .DataSource(source => { source.Read(read => { read.Action("GetTmimata", "Programma"); }).ServerFiltering(true); })
+            .Events(e =>
+            {
+                e.Select("ddlselect");
+            })
+    )
+    <label style="margin-left:10px;font-size:13px;font-weight:bold;color:white">Από ημερομηνία : </label>
+    @(Html.Kendo().DatePicker()
+        .Name("datepicker1")
+        .Value(DateTime.Today)
+        .Enable(true)
+        .HtmlAttributes(new { style = "width:120px;font-size:13px;font-weight:bold", type = "text" })
+        .Events(e =>
+        {
+            e.Change("dpchange1");
+        })
+    )
+    <label style="margin-left:10px;font-size:13px;font-weight:bold;color:white">Έως ημερομηνία : </label>
+    @(Html.Kendo().DatePicker()
+        .Name("datepicker2")
+        .Value(DateTime.Today)
+        .Enable(true)
+        .HtmlAttributes(new { style = "width:120px;font-size:13px;font-weight:bold", type = "text" })
+        .Events(e =>
+        {
+            e.Change("dpchange2");
+        })
+    )
+</div>
+
+<div class="body-content" style="margin:5px 20px 5px 20px">
+
+        @(Html.Kendo().Grid<ProgrammaDayViewModel>()
+        .Name("Grid")
+        .AutoBind(false)
+        .HtmlAttributes(new { style = "font-size:10px" })
+        .Navigatable()
+        .Filterable()
+        .Editable(editable => editable.Mode(GridEditMode.InCell).CreateAt(GridInsertRowPosition.Bottom))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(380))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΕΒΔΟΜΑΔΑ, (IEnumerable<NUMBERS>)ViewData["weeks"], "NUMBER", "NUMBER").Width(8).Filterable(false);
+            columns.ForeignKey(f => f.ΩΡΑ, (IEnumerable<NUMBERS>)ViewData["hours"], "NUMBER", "NUMBER").Width(8).Filterable(false);
+            columns.Bound(f => f.ΗΜΕΡΟΜΗΝΙΑ).Width(14).Filterable(false);
+            columns.ForeignKey(f => f.ΚΩΔ_ΜΑΘΗΜΑ, (IEnumerable<qryIEK_EIDIKOTITES_LESSONS>)ViewData["lessons"], "LESSON_ID", "LESSON_DESC")
+                .Width(34).EditorTemplateName("TmimaLessonId").HtmlAttributes(new { style = "font-size:9px" });
+            columns.ForeignKey(f => f.ΚΩΔ_ΕΡΓΑΣΙΑ, (IEnumerable<ΕΡΓΑΣΙΕΣ>)ViewData["ergasies"], "ΚΩΔ_ΕΡΓΑΣΙΑ", "ΕΡΓΑΣΙΑ").Width(14);
+            columns.ForeignKey(f => f.ΕΚΠΑΙΔΕΥΤΗΣ1, (IEnumerable<sqlTEACHERS_WITH_PERIODS>)ViewData["teachers"], "TEACHER_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(26).EditorTemplateName("TmimaTeacherId");
+            columns.Bound(f => f.Π1).Width(6).ClientTemplate("<input type='checkbox' #= Π1 ? checked='checked':'' # class='chkbx' />").Filterable(false);
+            columns.ForeignKey(f => f.ΕΚΠΑΙΔΕΥΤΗΣ2, (IEnumerable<sqlTEACHERS_WITH_PERIODS>)ViewData["teachers"], "TEACHER_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(26).EditorTemplateName("TmimaTeacherId");
+            columns.Bound(f => f.Π2).Width(6).ClientTemplate("<input type='checkbox' #= Π2 ? checked='checked':'' # class='chkbx' />").Filterable(false);
+            columns.ForeignKey(f => f.ΕΚΠΑΙΔΕΥΤΗΣ3, (IEnumerable<sqlTEACHERS_WITH_PERIODS>)ViewData["teachers"], "TEACHER_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(26).EditorTemplateName("TmimaTeacherId");
+            columns.Bound(f => f.Π3).Width(6).ClientTemplate("<input type='checkbox' #= Π3 ? checked='checked':'' # class='chkbx' />").Filterable(false);
+            columns.Command(command => { command.Destroy(); }).Width(20);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+            toolBar.Save();
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(true)
+            .PageSize(60)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΠΡΟΓΡΑΜΜΑ_ΚΩΔ);
+                model.Field(p => p.ΕΒΔΟΜΑΔΑ).DefaultValue(1);
+                model.Field(p => p.ΩΡΑ).DefaultValue(1);
+                model.Field(p => p.ΚΩΔ_ΜΑΘΗΜΑ).DefaultValue(0);
+                model.Field(p => p.ΚΩΔ_ΕΡΓΑΣΙΑ).DefaultValue((int)ViewData["defaultErgasia"]);
+                model.Field(p => p.ΕΚΠΑΙΔΕΥΤΗΣ1).DefaultValue((int)ViewData["defaultTeacher"]);
+                model.Field(p => p.ΕΚΠΑΙΔΕΥΤΗΣ2).DefaultValue(0);
+                model.Field(p => p.ΕΚΠΑΙΔΕΥΤΗΣ3).DefaultValue(0);
+            })
+            .Create(create => create.Action("Programma2_Create", "Programma").Data("data2"))
+            .Read(read => read.Action("Programma2_Read", "Programma").Data("data"))
+            .Update(update => update.Action("Programma2_Update", "Programma").Data("data2"))
+            .Destroy(destroy => destroy.Action("Programma2_Destroy", "Programma"))
+        )
+        )
+
+</div>
+
+<div class="body-content" style="margin:10px 20px 5px 20px;background-color:dimgray;padding:4px 4px 4px 4px;min-height:38px">
+    <label style="margin-left:10px;font-size:13px;font-weight:bold;color:white">Διαγραφή προγράμματος - Από : </label>
+    @(Html.Kendo().DatePicker()
+        .Name("datepicker3")
+        .Value(DateTime.Today)
+        .Enable(true)
+        .HtmlAttributes(new { style = "width:120px;font-size:13px;font-weight:bold", type = "text" })
+    )
+    <label style="margin-left:10px;font-size:13px;font-weight:bold;color:white">Έως : </label>
+    @(Html.Kendo().DatePicker()
+        .Name("datepicker4")
+        .Value(DateTime.Today)
+        .Enable(true)
+        .HtmlAttributes(new { style = "width:120px;font-size:13px;font-weight:bold", type = "text" })
+    )
+    <span style="margin-right:5px;margin-left:5px;margin-bottom:2px;float:right;font-family:'Segoe UI';">
+        <input style="font-family:'Segoe UI';font-weight:bold;font-size:12px" type="button" onclick="deleteProgramma()" value="Διαγραφή" class="btn btn-default" />
+    </span>
+    <div id="divLoading" style="margin:0px 10px 0px 0px;float:right;font-family:'Segoe UI';z-index: 30001;display:none">
+        <p id="message-icon" style="margin-left:5px;font-size:13px;color:#ffffff">
+            Διαγραφή σε εξέλιξη...<img id="ajax-icon" src="~/Images/other/progress4.gif" style="margin-left:5px;width:36px;height:36px">
+        </p>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function filterLessons() {
+        var tmimaID = $("#ddltmima").data("kendoDropDownList").value();
+        if (tmimaID) {
+            return { tmimaId: tmimaID };
+        }
+        else {
+            return { tmimaId: 0 };
+        }
+    }
+
+    function filterTeachers() {
+        var tmimaID = $("#ddltmima").data("kendoDropDownList").value();
+        if (tmimaID) {
+            return { tmimaId: tmimaID };
+        }
+        else {
+            return { tmimaId: 0 };
+        }
+    }
+
+    // Date: 16-11-2018
+    // Listener for the state of the three checkboxes (Π1, Π2, Π3).
+    // Required, otherwise changes do not take effect in batch mode of the grid.
+    // THIS IS IT! It works for any number of checkbox columns. All other solutions fail!
+    // in batch editing mode of the grid.
+    // Solution link: https://stackoverflow.com/questions/17889049/adding-bindeable-checkbox-column-to-grid
+    $(function () {
+        $('#Grid').on('click', '.chkbx', function () {
+            var checked = $(this).is(':checked');
+            var grid = $('#Grid').data().kendoGrid;
+
+            grid.closeCell();
+            var dataItem = grid.dataItem($(this).closest('tr'));
+            var col = $(this).closest('td');
+
+            grid.editCell(col);
+            dataItem.set(grid.columns[col.index()].field, checked);
+            grid.closeCell(col);
+        });
+    });
+
+    function deleteProgramma() {
+        var datepicker3 = $("#datepicker3").data("kendoDatePicker");
+        var datepicker4 = $("#datepicker4").data("kendoDatePicker");
+        var selectedDate3 = datepicker3.value();
+        var selectedDate4 = datepicker4.value();
+
+        var sDate1 = selectedDate3.getDate() + '/' + (selectedDate3.getMonth() + 1) + '/' + selectedDate3.getFullYear();
+        var sDate2 = selectedDate4.getDate() + '/' + (selectedDate4.getMonth() + 1) + '/' + selectedDate4.getFullYear();
+
+        var tmimaID = $("#ddltmima").data("kendoDropDownList").value();
+
+        if (tmimaID && selectedDate3 && selectedDate4) {
+            if (selectedDate3 <= selectedDate4) {
+                MessageBoxConfirm("Να γίνει η διαγραφή του προγράμματος μεταξύ των επιλεγμένων ημερομηνιών;").done(function () {
+                    $('#divLoading').show();
+                    $.ajax({
+                        url: '@Url.Action("DeleteProgramma", "Programma")?tmimaId=' + tmimaID + '&theDate1=' + sDate1 + '&theDate2=' + sDate2,
+                        type: 'GET',
+                        data: "",
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            $('#divLoading').hide();
+                            if (data != "") MessageBoxAlert(data);
+                            RefreshGrid();
+                        },
+                        error: function () {
+                            $('#divLoading').hide();
+                            MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+                        }
+                    });
+                }).fail(function () {
+                    return;
+                });
+            }
+            else {
+                MessageBoxAlert("Η αρχική ημερομηνία πρέπει να είναι μικρότερη της τελικής.")
+            }
+        }
+        else {
+            MessageBoxAlert("Πρέπει να επιλέξετε τμήμα και ημερομηνίες για διαγραφή μέρους του προγράμματος.")
+        }
+    }
+
+    function ddlselect(e) {
+        var tmimaID = 0;
+        var dataItem = this.dataItem(e.item.index());
+        if (dataItem) {
+            tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        }
+        var datepicker1 = $("#datepicker1").data("kendoDatePicker");
+        var datepicker2 = $("#datepicker2").data("kendoDatePicker");
+        var selectedDate1 = datepicker1.value();
+        var selectedDate2 = datepicker2.value();
+
+        if (tmimaID && selectedDate1 && selectedDate2) {
+            if (selectedDate1 <= selectedDate2) {
+                $("#Grid").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, theDate1: selectedDate1, theDate2: selectedDate2 });
+                $("#Grid").css("display", "block");
+            }
+            else {
+                MessageBoxAlert("Η αρχική ημερομηνία πρέπει να είναι μικρότερη της τελικής.")
+            }
+        }
+        else {
+            MessageBoxAlert("Πρέπει να επιλέξετε τμήμα και ημερομηνίες για προβολή του προγράμματος.")
+        }
+    };
+
+    function dpchange1() {
+        var datepicker1 = $("#datepicker1").data("kendoDatePicker");
+        var datepicker2 = $("#datepicker2").data("kendoDatePicker");
+        var selectedDate1 = this.value();
+        var selectedDate2 = datepicker2.value();
+        var tmimaID = $("#ddltmima").data("kendoDropDownList").value();
+
+        if (tmimaID && selectedDate1 && selectedDate2) {
+            if (selectedDate1 <= selectedDate2) {
+                $("#Grid").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, theDate1: selectedDate1, theDate2: selectedDate2 });
+                $("#Grid").css("display", "block");
+            }
+            else {
+                MessageBoxAlert("Η αρχική ημερομηνία πρέπει να είναι μικρότερη της τελικής.")
+            }
+        }
+        else {
+            MessageBoxAlert("Πρέπει να επιλέξετε τμήμα και ημερομηνίες για προβολή του προγράμματος.")
+        }
+    }
+
+    function dpchange2() {
+        var datepicker1 = $("#datepicker1").data("kendoDatePicker");
+        var datepicker2 = $("#datepicker2").data("kendoDatePicker");
+        var selectedDate2 = this.value();
+        var selectedDate1 = datepicker1.value();
+        var tmimaID = $("#ddltmima").data("kendoDropDownList").value();
+
+        if (tmimaID && selectedDate1 && selectedDate2) {
+            if (selectedDate1 <= selectedDate2) {
+                $("#Grid").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, theDate1: selectedDate1, theDate2: selectedDate2 });
+                $("#Grid").css("display", "block");
+            }
+            else {
+                MessageBoxAlert("Η αρχική ημερομηνία πρέπει να είναι μικρότερη της τελικής.")
+            }
+        }
+        else {
+            MessageBoxAlert("Πρέπει να επιλέξετε τμήμα και ημερομηνίες για προβολή του προγράμματος.")
+        }
+    }
+
+        // this used for fetching the data
+    function data() {
+        var datepicker1 = $("#datepicker1").data("kendoDatePicker");
+        var datepicker2 = $("#datepicker2").data("kendoDatePicker");
+        var tmimaID = $("#ddltmima").data("kendoDropDownList").value();
+        var selectedDate1 = datepicker1.value();
+        var selectedDate2 = datepicker2.value();
+
+        if (tmimaID && selectedDate1 && selectedDate2) {
+            return {
+                tmimaId: tmimaID,
+                theDate1: selectedDate1,
+                theDate2: selectedDate2
+            }
+        }
+        else {
+            return {
+                tmimaId: 0,
+                theDate1: null,
+                theDate2: null
+            }
+        }
+    }
+
+    // this is used for creating, updating records
+    function data2() {
+        var tmimaID = $("#ddltmima").data("kendoDropDownList").value();
+        if (tmimaID) {
+            return { tmimaId: tmimaID }
+        }
+        else {
+            return { tmimaId: 0 }
+        }
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+            RefreshGrid(e);
+        }
+    }
+
+</script>
+

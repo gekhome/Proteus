@@ -1,0 +1,211 @@
+﻿
+@{
+    ViewBag.Title = "Υποψήφιοι σπουδαστές";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    a.imglink01 {
+        background: url("~/Images/metro/teacher-person02.png") no-repeat top left;
+        display: block;
+        width: 150px;
+        height: 150px;
+        text-indent: -9999px; /* hides the link text */
+    }
+    .buttonImg{
+        background-color: #E67E00;
+    }
+    .buttonImg:hover{
+        background-color: #ffffff;
+    }
+    .col-md-4{
+        color: #00008b;
+        font-family:'Segoe UI';
+    }
+
+    .inline-picture {
+        float: left;
+        margin: 30px 30px 20px 30px;
+        text-align: center;
+    }
+
+    .inline-picture img {
+        display: block;
+        margin-bottom: 10px;
+    }
+</style>
+
+<head>
+    <title></title>
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <p />
+    <table class="body-content">
+        <tr>
+            <td>
+                <h1>
+                    Σελίδα ηλεκτρονικής αίτησης εγγραφής στα ΙΕΚ.
+                    <img src="~/Images/metro/dypa-logo.png" width="60" height="40" style="margin-left:5px" />
+                </h1>
+            </td>
+            @*<td>
+                <button class="btn btn-danger" style="margin:10px 5px 5px 80px;float:right;font-family:'Segoe UI';font-size:15px" onclick="showAttention()">Οδηγίες</button>
+            </td>*@
+        </tr>
+    </table>
+    <p></p>
+    <table class="list-group">
+        <tr class="list-group-item">
+            <td style="background-color:#E67E00">
+                <div class="col-md-2 tooltip1">
+                    <a href='@Url.Action("CandidateEdit", "Candidates")'>
+                        <img class="img-app" src='@Url.Content("~/Images/menu/person.png")' height="60" width="60" />
+                    </a>
+                    <span class="tooltip1text">Καταχώρηση και επεξεργασία αίτησης εγγραφής</span>
+                </div>
+            </td>
+            <td>
+                <div class="col-md-9" style="margin-left:50px">
+                    <p style="font-size:large;color:black">
+                        <a href='@Url.Action("CandidateEdit", "Candidates")' style="font-weight:bold;color:#cc7000">1. Υποβολή αίτησης εγγραφής</a>
+                    </p>
+                    <p style="font-size:16px">
+                        Από την επιλογή αυτή συμπληρώνονται τα στοιχεία αίτησης, των υποψηφίων σπουδαστών,
+                        τα οποία ζητούνται από την ηλεκτρονική φόρμα. Η αποθήκευση οριστικοποιεί την υποβολή της αίτησης.
+                    </p>
+                </div>
+            </td>
+        </tr>
+        @*<tr class="list-group-item">
+            <td style="background-color:#E67E00">
+                <div class="col-md-2 tooltip1">
+                    <a href='@Url.Action("WorkExperience", "Candidates")'>
+                        <img class="img-app" src='@Url.Content("~/Images/menu/doc-add.png")' height="60" width="60" />
+                    </a>
+                    <span class="tooltip1text">Καταχώρηση επαγγελματικής εμπειρίας σχετικής με την ειδικότητα</span>
+                </div>
+            </td>
+            <td>
+                <div class="col-md-9" style="margin-left:50px">
+                    <p style="font-size:large;color:black">
+                        <a href='@Url.Action("WorkExperience", "Candidates")' style="font-weight:bold;color:#cc7000">2. Καταχώρηση επαγγελματικής εμπειρίας</a>
+                    </p>
+                    <p style="font-size:16px">
+                        Με την επιλογή αυτή συμπληρώνετε τα ζητούμενα στοιχεία της επαγγελματικής εμπειρίας, που μπορεί να έχετε.
+                    </p>
+                </div>
+            </td>
+        </tr>*@
+        <tr class="list-group-item">
+            <td style="background-color:#E67E00">
+                <div class="col-md-2 tooltip1">
+                    <a href='@Url.Action("UploadData", "Candidates")'>
+                        <img class="img-app" src='@Url.Content("~/Images/menu/doc-upload.png")' height="60" width="60" />
+                    </a>
+                    <span class="tooltip1text">Μεταφόρτωση σαρωμένων δικαιολογητικών στον εξυπηρετητή</span>
+                </div>
+            </td>
+            <td>
+                <div class="col-md-9" style="margin-left:50px">
+                    <p style="font-size:large;color:black">
+                        <a href='@Url.Action("UploadData", "Candidates")' style="font-weight:bold;color:#cc7000">3. Μεταφόρτωση δικαιολογητικών αίτησης</a>
+                    </p>
+                    <p style="font-size:16px">
+                        Με την επιλογή αυτή μπορείτε να ανεβάσετε τα δικαιολογητικά σας σε μορφή PDF
+                        στον εξυπηρετητή της εφαρμογής για έλεγχο από τα ΙΕΚ.
+                    </p>
+                </div>
+            </td>
+        </tr>
+        <tr class="list-group-item">
+            <td style="background-color:#E67E00">
+                <div class="col-md-2 tooltip1">
+                    <a href='@Url.Action("CandidateMoria", "Candidates")'>
+                        <img class="img-app" src='@Url.Content("~/Images/menu/results.png")' height="60" width="60" />
+                    </a>
+                    <span class="tooltip1text">Ενδεικτικός υπολογισμός μορίων αξιολόγησης αίτησης</span>
+                </div>
+            </td>
+            <td>
+                <div class="col-md-9" style="margin-left:50px">
+                    <p style="font-size:large;color:black">
+                        <a href='@Url.Action("CandidateMoria", "Candidates")' style="font-weight:bold;color:#cc7000">4. Υπολογισμός μορίων αίτησης</a>
+                    </p>
+                    <p style="font-size:16px">
+                        Με την επιλογή αυτή έχετε μία ένδειξη για τα προσωρινά μόρια της αίτησής σας. Υπάρχει πάντα το
+                        ενδεχόμενο αυτά να αλλάξουν από τις επιτροπές των σχολείων.
+                    </p>
+                </div>
+            </td>
+        </tr>
+        <tr id="info" class="list-group-item" style="background-color:#666666">
+            <td>
+                <img src='@Url.Content("~/Images/metro/info-icon-grey.png")' height="48" width="48" style="margin-top:0px;margin-right:10px" />
+            </td>
+            <td>
+                <div class="col-md-12" style="margin-left:10px;margin-top:5px">
+                    <p style="font-size:16px;font-style:italic">
+                        <font style="color:#ffffff;">Για να μεταβείτε στην επιθυμητή σελίδα κάνετε κλικ στο αντίστοιχο εικονίδιο ή στην επικεφαλίδα.</font>
+                    </p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+<div id="modalWindow">
+    <div class="inline-picture">
+        <img src='@Url.Content("~/Images/metro/information-icon-blue.png")' height="100" width="100" alt="Προσοχή!" />
+    </div>
+    <p style="margin-top:10px;font-size:16px">
+        Συνιστούμε την προσοχή σας να μη ξεχνάτε να συμπληρώσετε τα απαιτούμενα στοιχεία
+        στη "Δήλωση στοιχείων γονέα". Άν δεν καταχωρήσετε δήλωση στοιχείων δεν θα
+        μοριοδοτηθείτε και δεν θα εμφανίζεστε στους Πίνακες Αξιολόγησης!
+    </p>
+    <p style="font-size:16px">
+        Η "Δήλωση στοιχείων" είναι η 3η επιλογή στη σελίδα αυτή.
+    </p>
+    <div style="margin-left:0px;margin-top:20px;text-align:center;">
+        <button id="close" class="k-button" style="margin-left:5px">Κλείσιμο</button>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        wnd = $("#modalWindow").kendoWindow({
+            title: "Δήλωση στοιχείων γονέα",
+            modal: true,
+            visible: false,
+            resizable: false,
+            height: 220,
+            width: 600
+        }).data("kendoWindow");
+
+    });
+
+    function showAttention() {
+        // Open user-dialog window
+        wnd.center().open();
+
+        $("#close").click(function () {
+            wnd.close();
+        });
+    }
+
+    $(".img-app").hover(function () {
+        $(this).attr("src", function (index, attr) {
+            return attr.replace(".png", "-active.png");
+        });
+    }, function () {
+        $(this).attr("src", function (index, attr) {
+            return attr.replace("-active.png", ".png");
+        });
+    });
+
+</script>

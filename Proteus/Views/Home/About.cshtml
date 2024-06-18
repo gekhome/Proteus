@@ -1,0 +1,79 @@
+﻿@{
+    ViewBag.Title = "Λειτουργίες";
+}
+
+
+<h1>@ViewBag.Title.</h1><p></p><p></p><br/>
+<h3>@ViewBag.Message</h3>
+
+<div class="k-floatwrap">
+    <div style="float: left">
+        <!-- Info area -->
+        <article>
+            <p></p>
+            <p class="sansserif" style="font-weight:bold">
+                Οι βασικές λειτουργίες της εφαρμογής Proteus είναι οι εξής:
+            </p>
+            <p></p>
+            <p class="sansserif">
+                1. Δημιουργία ηλεκτρονικού μητρώου καταρτιζόμενων.
+            </p>
+            <p class="sansserif">
+                2. Δημιουργία ηλεκτρονικού μητρώου εκπαιδευτικών.
+            </p>
+            <p class="sansserif">
+                3. Δημιουργία μητρώων πρακτικής άσκησης και μαθητείας.
+            </p>
+            <p class="sansserif">
+                4. Γραμματειακή υποστήριξη του φυσικού αντικειμένου.
+            </p>
+            <p class="sansserif">
+                5. Ποσοτική ανάλυση των καταχωρημένων πληροφοριών.
+            </p>
+            <p class="sansserif">
+            </p>
+            <p></p>
+        </article>
+        <!-- /Info area -->
+    </div>
+    @*<aside>
+        <p>Σύνδεσμοι</p>
+        <p></p>
+
+        @(Html.Kendo().TreeView()
+        .Name("LinksTreeView")
+        .Items(items =>
+        {
+            items.Add()
+                .Text("Αρχική")
+                .Action("Index", "Home");
+            items.Add()
+                .Text("Σχετικά")
+                .Action("About", "Home");
+            items.Add()
+                .Text("Επικοινωνία")
+                .Action("Contact", "Home");
+        })
+        )
+    </aside>*@
+
+</div>
+<p></p><p></p>
+
+<div>
+    <hr style="background-color:#000080">
+    <table width:100%>
+        <tr>
+            <td width="10%" align="left"><img src="~/images/metro/dypa-logo.png" height="70" width="86" /></td>
+            <td align="center">
+                <font color="#000000" size="3" style="font-weight:600">Διεύθυνση Επαγγελματικής Κατάρτισης</font>
+            </td>
+        </tr>
+        <tr>
+            <td width="10%" align="left"></td>
+            <td align="center">
+                <font color="#000000" size="2">Μελέτη-Ανάπτυξη: Δρ. Γεώργιος Κυριακάκης</font>
+            </td>
+        </tr>
+    </table>
+</div>

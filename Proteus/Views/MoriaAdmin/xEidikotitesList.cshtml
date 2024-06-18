@@ -1,0 +1,91 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Ειδικότητες κατάρτισης";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /*.k-grid .k-alt {
+        background-color: #e9e9e9; /* specify the alternate background-color */
+    }*/
+</style>
+
+    @Html.AntiForgeryToken()
+    <div class="page-header" style="margin:5px 30px 5px 30px">
+        <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+            <font style="color:#494949;float:left;font-family:'Segoe UI'">Ειδικότητες κατάρτισης</font>
+        </span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+        <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Εκτύπωση", "xEidikotitesIekPrint", "MoriaAdmin", null, new { @class = "btn btn-primary", style = "font-size:14px", target = "_blank" })</span>
+        <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+    </div>
+
+    <div class="body-content" style="margin:10px 30px 5px 30px">
+
+        @(Html.Kendo().Grid<XmEidikotitesViewModel>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(m => m.EIDIKOTITA_TEXT).Width(120);
+            columns.Bound(c => c.APPROVED).ClientTemplate("<input type='checkbox' #= APPROVED ? checked='checked' : '' # ></input>").Width(15);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(32);
+        })
+            .ToolBar(toolBar =>
+            {
+                toolBar.Create();
+            })
+            .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+            .Navigatable()
+            .Filterable()
+            .HtmlAttributes(new { style = "display:block;font-size:12px" })
+            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+            .Scrollable(scr => scr.Height(440))
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(5))
+            .DataSource(datasource => datasource
+                .Ajax()
+                .PageSize(60)
+                .ServerOperation(false)
+                .Model(model =>
+                {
+                    model.Id(p => p.EIDIKOTITA_ID);
+                    model.Field(p => p.APPROVED).DefaultValue(false);
+                })
+                .Create(create => create.Action("xmEidikotita_Create", "MoriaAdmin"))
+                .Read(read => read.Action("xmEidikotita_Read", "MoriaAdmin"))
+                .Update(update => update.Action("xmEidikotita_Update", "MoriaAdmin"))
+                .Destroy(destroy => destroy.Action("xmEidikotita_Destroy", "MoriaAdmin"))
+                .Events(events => events.Error("error_handler"))                      
+            ) @* datasource*@
+        )
+
+    </div>
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        RefreshGrid(e);
+    }
+
+</script>
+

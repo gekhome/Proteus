@@ -1,0 +1,130 @@
+﻿
+@{
+    ViewBag.Title = "Νέοι σπουδαστές";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    a.imglink01 {
+        background: no-repeat top left;
+        display: block;
+        /*width: 150px;
+        height: 150px;*/
+        text-indent: -9999px; /* hides the link text */
+    }
+
+    .buttonImg {
+        background-color:transparent;
+    }
+
+    .buttonImg:hover {
+        background-color:gray;
+        background-size:288px 140px;
+    }
+
+    .col-md-4 {
+        font-family: 'Segoe UI';
+    }
+
+    p.sansserif {
+        font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+        font-size:14px;
+    }
+
+</style>
+
+<div class="container" style="align-content:center;margin-top:40px">
+    @(Html.Kendo().PanelBar()
+        .Name("IntroPanelBar")
+        .Items(items =>
+        {
+            items.Add()
+            .Text("Εργασίες μοριοδότησης και εισαγωγής νέων σπουδαστών")
+            .Selected(true)
+            .Expanded(true)
+            .Content(@<text>
+            <div class="suites body-content" style="background-color:transparent;margin-left:60px;margin-right:60px">
+                    <table style="margin-top:20px;margin-left:120px">
+                        <tr>
+                            <td align="left">
+                                <a href='@Url.Action("XmProkirixisList", "School")'>
+                                    <img class="buttonImg" src='@Url.Content("~/Images/other/moria-tile1.png")' />
+                                </a>
+                            </td>
+                            <td align="right">
+                                <a href='@Url.Action("XmAitiseisList", "School")' style="margin-left:60px">
+                                    <img class="buttonImg" src='@Url.Content("~/Images/other/moria-tile2.png")' />
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                    <table style="margin-top:40px;margin-left:120px;margin-bottom:20px">
+                        <tr>
+                            <td align="left">
+                                <a href='@Url.Action("XmAitiseisAmk", "School")' style="margin-top:80px">
+                                    <img class="buttonImg" src='@Url.Content("~/Images/other/moria-tile3.png")' />
+                                </a>
+                            </td>
+                            <td>
+                                <a href='@Url.Action("XmStudentData", "School")' style="margin-left:60px;margin-top:80px">
+                                    <img class="buttonImg" src='@Url.Content("~/Images/other/moria-tile4.png")' />
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+            </div>
+            </text>);
+            items.Add()
+            .Text("Σύντομες οδηγίες")
+            .Content(
+            @<text>
+                <!-- Tabtrip section -->
+                <div style="margin-left:40px;margin-right:6px">
+                    <p class="sansserif"></p>
+                    <p class="sansserif" style="font-size:medium">
+                    <p class="sansserif">
+                        <img src="~/Images/metro/orderedList1.png" />
+                        Το πρώτο βήμα είναι η καταχώρηση των στοιχείων της εγκυκλίου για το επιθυμητό σχολικό έτος.<br />
+                        Η εγκύκλιος πρέπει να επιλεγεί ώς "Ανοικτή" - μία μόνο εγκύκλιος μπορεί να είναι ανοικτή. Μετά την ολοκλήρωση<br />
+                        των εργασιών μοριοποίησης "κλείνουμε" την τρέχουσα εγκύκλιο.
+                    </p>
+                    <p class="sansserif">
+                        <img src="~/Images/metro/orderedList2.png" />
+                        Στις καρτέλες των αιτήσεων καταχωρούνται τα βασικά στοιχεία των αιτούντων και γίνεται η μοριοδότηση<br />
+                        με χρήση του αντίστοιχου πλήκτρου στην καρτέλα κάθε αίτησης. Αφού ολοκληρωθεί η διαδικασία ανάρτησης<br />
+                        των πινάκων αξιολόγησης, χαραρκτηρίζουμε τους επιτυχόντες από το πτυσσόμενο πλαίσιο στην καρτέλα κάθε<br />
+                        υποψήφιου και καταχωρούμε, αν θέλουμε στο στάδιο αυτό, την ειδικότητα στην οποία εντάσσονται.<br />
+                        Με την επιλογή "Επεξεργασία κατάταξης" επιλέγουμε ποιοί υποψήφιοι σπουδαστές χαρακτηρίζονται ως<br />
+                        "Επιτυχόντες" ή "Επιλαχόντες". Στη συνέχεια ελέγχουμε και εκτυπώνουμε τον πίνακα κατάταξης.
+                    </p>
+                    <p class="sansserif">
+                        <img src="~/Images/metro/orderedList3.png" />
+                        Με την επιλογή "Προβολή επιτυχόντων για καταχώρηση ΑΜΚ" καταχωρούμε σε κάθε επιτυχόντα τον Αρ. Μητρώου<br />
+                        και την ειδικότητα στην οποία εντάσσεται, αν δεν το έχουμε κάνει στο δεύτερο βήμα. Στη συνέχεια, πατάμε το πλήκτρο<br />
+                        "Μεταφορά στο μητρώο σπουδαστών" για να καταχωρηθούν οι επιτυχόντες στο αρχείο σπουδαστών του σχολείου.<br />
+                        Το βήμα αυτό, καθώς και το επόμενο, είναι βοηθητικά ώστε να αποφεύγεται να μη καταχωρούνται χειρονακτικά<br />
+                        τα βασικά στοιχεία των επιτυχόντων στις καρτέλες σπουδαστών.
+                    </p>
+                    <p class="sansserif">
+                        <img src="~/Images/metro/orderedList4.png" />
+                        Με την τελευταία επιλογή, εμφανίζεται το γνωστό πλέγμα με τους σπουδαστές και αυτό των εγγραφών τους σε<br />
+                        τμήματα. Η διαφορά είναι ότι εδώ εμφανίζονται μόνο οι νεοεισαχθέντες σπουδαστές από τη διαδικασία,<br />
+                        μοριοδότησης και καταχώρησης ΑΜΚ και ειδικότητας ένταξης, που έγινε στο βήμα (3) για την τρέχουσα<br />
+                        ανοικτή εγκύκλιο.
+                        <br />
+                        <font style="font-weight:bold;font-style:italic">ΠΑΡΑΤΗΡΗΣΗ</font>
+                    </p>
+                    <p class="sansserif" style="font-style:italic">
+                        Για να γίνουν οι παραπάνω διαδικασίες προϋπόθεση είναι να υπάρχει η τρέχουσα εγκύκλιος σε ανοικτή<br />
+                        κατάσταση. Αφού ολοκληρωθεί και το τέταρτο βήμα καλόν είναι να τεθεί η εγκύκλιος σε κλειστή κατάσταση.<br />
+                        Η εφαρμογή επιτρέπει μόνο μία εγκύκλιο ανοικτή κάθε φορά. Αν και η εγκύκλιος είναι μία, κάθε σχολείο<br />
+                        διαχερίζεται το δικό του "αντίγραφο" της εγκυκλίου για κάθε σχολικό έτος.
+                    </p>
+                    <p />
+                </div>
+                <!-- End of Tabstrip -->
+            </text>);
+        })
+)
+
+</div>

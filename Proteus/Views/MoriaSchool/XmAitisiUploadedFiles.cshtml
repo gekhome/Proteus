@@ -1,0 +1,157 @@
+﻿@using Proteus.DAL
+@using Proteus.Models
+@{
+    ViewBag.Title = "Αρχεία αίτησης";
+    Layout = "~/Views/Shared/_LayoutMin.cshtml";
+
+    int aitisi_id = (int)ViewData["aitisi_id"];
+}
+
+<head>
+    <title></title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.11.4/jquery-ui.js" type="text/javascript"></script>
+    <link href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
+</head>
+
+<div class="page-header" style="margin:10px 60px 5px 60px">
+    <span style="margin:5px 60px 5px 60px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Ανεβασμένα αρχεία αίτησης σπουδαστή</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';">
+        <a class="btn btn-warning" style="font-family:'Segoe UI';font-size:14px" href="#" onclick="javascript:window.close();opener.window.focus();">Κλείσιμο καρτέλας</a>
+    </span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+    <p></p>
+</div>
+
+<div class="body-content" style="margin:10px 60px 5px 60px;">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="col-md-3">
+                <label class="control-label">Α.Π. αίτησης:</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-control smartShortText" style="max-height:32px;width:300px; background-color:#EEE"
+                       title="@Html.Raw(ViewBag.AitisiHeader.ΑΙΤΗΣΗ_ΠΡΩΤΟΚΟΛΛΟ)">@Html.Raw(ViewBag.AitisiHeader.ΑΙΤΗΣΗ_ΠΡΩΤΟΚΟΛΛΟ)</label>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="col-md-3">
+                <label class="control-label">Ονοματεπώνυμο:</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-control smartShortText" style="max-height:32px;width:360px; background-color:#EEE"
+                        title="@Html.Raw(ViewBag.AitisiHeader.ΟΝΟΜΑΤΕΠΩΝΥΜΟ)">@Html.Raw(ViewBag.AitisiHeader.ΟΝΟΜΑΤΕΠΩΝΥΜΟ)</label>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5">
+            <div class="col-md-3">
+                <label class="control-label">Α.Φ.Μ.:</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-control smartShortText" style="max-height:32px;width:300px; background-color:#EEE"
+                       title="@Html.Raw(ViewBag.AitisiHeader.ΑΦΜ)">@Html.Raw(ViewBag.AitisiHeader.ΑΦΜ)</label>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="col-md-3">
+                <label class="control-label">Ειδικότητα 1η:</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-control smartShortText" style="max-height:32px;width:360px; background-color:#EEE"
+                        title="@Html.Raw(ViewBag.AitisiHeader.EIDIKOTITA_TEXT)">@Html.Raw(ViewBag.AitisiHeader.EIDIKOTITA_TEXT)</label>
+            </div>
+        </div>
+    </div>
+    <p></p>
+</div>
+
+
+<div id="general-files" class="body-content" style="margin:10px 60px 5px 60px">
+    <label style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;font-size:18px;font-weight:500;margin-bottom:4px;color:#494949">Δικαιολογητικά αίτησης</label>
+    @(Html.Kendo().Grid<sqlUploadedFilesViewModel>()
+        .Name("Child1")
+        .AutoBind(true)
+        .HtmlAttributes(new { style = "font-size:14px" })
+        .Filterable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(380))
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ID).Hidden();
+            columns.Bound(c => c.FILE_ID).Width(20).Hidden();
+            columns.Bound(c => c.FILENAME).Width(40);
+            columns.Bound(c => c.EXTENSION).Width(15);
+            columns.Bound(c => c.UPLOAD_SUMMARY).Width(30);
+            columns.Bound(c => c.SCHOOL_USER).Width(20);
+            columns.Bound(c => c.SCHOOLYEAR_TEXT).Width(20);
+            columns.Command(command => command.Custom("\u13EB" + " Προβολή").Click("showPDF")).Width(20);
+            columns.Template(@<text></text>)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("Download", "MoriaSchool") + "?file_id=#=ID#'><span class=\"k-icon k-update\"></span>Κατέβασμα</a>"
+            ).Width(20);
+        })
+        .DataSource(ds => ds
+        .Ajax()
+        .Batch(false)
+        .PageSize(40)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.FILE_ID);
+        })
+        .Read(read => read.Action("AitisiUploads_Read", "MoriaSchool", new { aitisiId = aitisi_id }))
+        )
+    )
+</div>
+
+<div id="dialog" style="display: none"></div>
+
+<script type="text/javascript">
+
+    function showPDF(e) {
+        e.preventDefault();
+        var grid = this;
+        var row = $(e.currentTarget).closest("tr");
+        var data = this.dataItem(row);
+
+        var currentDomain = '@Url.Content("~")';
+        var url = currentDomain + "Uploads/" + data.SCHOOL_USER + "/" + data.SCHOOLYEAR_TEXT + "/";
+        fileName = data.ID + data.EXTENSION;
+
+        $("#dialog").dialog({
+            modal: true,
+            title: fileName,
+            width: 860,
+            height: 700,
+            buttons: {
+                Κλείσιμο: function () {
+                    $(this).dialog('close');
+                }
+            },
+            open: function () {
+                var object = "<object data=\"{FileName}\" type=\"application/pdf\" width=\"800px\" height=\"600px\">";
+                object += "Δεν μπορεί να γίνει προβολή του αρχείου είτε γιατί δεν μεταφορτώθηκε είτε γιατί δεν έχετε εγκατεστημένο PDF Reader.";
+                object += "</object>";
+                object = object.replace(/{FileName}/g, url + fileName);
+                $("#dialog").html(object);
+            }
+        });
+    }
+
+</script>
+
+
+
+
+
+
+
+
+

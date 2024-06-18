@@ -1,0 +1,133 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Εργασιακή εμπειρία";
+    Layout = "~/Views/Shared/_LayoutMin.cshtml";
+}
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:10px 60px 5px 60px">
+    <span style="margin:5px 60px 5px 60px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Εργασιακές εμπειρίες υποψήφιου σπουδαστή</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Candidates", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+    <p></p>
+</div>
+
+<div class="body-content" style="margin:10px 60px 5px 60px;">
+    <div class="row">
+        <div class="col-md-5">
+            <div class="col-md-3">
+                <label class="control-label">Α.Π. αίτησης:</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-control smartShortText" style="max-height:32px;width:300px; background-color:#EEE"
+                       title="@Html.Raw(ViewBag.AitisiHeader.ΑΙΤΗΣΗ_ΠΡΩΤΟΚΟΛΛΟ)">@Html.Raw(ViewBag.AitisiHeader.ΑΙΤΗΣΗ_ΠΡΩΤΟΚΟΛΛΟ)</label>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="col-md-3">
+                <label class="control-label">Ονοματεπώνυμο:</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-control smartShortText" style="max-height:32px;width:360px; background-color:#EEE"
+                        title="@Html.Raw(ViewBag.AitisiHeader.ΟΝΟΜΑΤΕΠΩΝΥΜΟ)">@Html.Raw(ViewBag.AitisiHeader.ΟΝΟΜΑΤΕΠΩΝΥΜΟ)</label>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5">
+            <div class="col-md-3">
+                <label class="control-label">Α.Φ.Μ.:</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-control smartShortText" style="max-height:32px;width:300px; background-color:#EEE"
+                       title="@Html.Raw(ViewBag.AitisiHeader.ΑΦΜ)">@Html.Raw(ViewBag.AitisiHeader.ΑΦΜ)</label>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="col-md-3">
+                <label class="control-label">Ειδικότητα 1η:</label>
+            </div>
+            <div class="col-md-3">
+                <label class="form-control smartShortText" style="max-height:32px;width:360px; background-color:#EEE"
+                        title="@Html.Raw(ViewBag.AitisiHeader.EIDIKOTITA_TEXT)">@Html.Raw(ViewBag.AitisiHeader.EIDIKOTITA_TEXT)</label>
+            </div>
+        </div>
+    </div>
+    <p></p>
+</div>
+
+<div class="body-content" style="margin:10px 60px 5px 60px;font-size:small">
+    @(Html.Kendo().Grid<XmExperienceViewModel>()
+        .Name("Grid")
+        .AutoBind(true)
+        .HtmlAttributes(new { style = "display: block;font-size:14px" })
+        .Navigatable()
+        .Filterable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(320))
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΕΝΑΡΞΗ).Width(20);
+            columns.Bound(c => c.ΛΗΞΗ).Width(20);
+            columns.Bound(c => c.ΠΕΡΙΓΡΑΦΗ).Width(70);
+            columns.Bound(c => c.ΔΙΑΡΚΕΙΑ).Width(16);            
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(38);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(false)
+            .PageSize(40)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΕΜΠΕΙΡΙΑ_ΚΩΔ);
+                model.Field(p => p.ΔΙΑΡΚΕΙΑ).Editable(false);
+            })
+            .Create(create => create.Action("Experience_Create", "Candidates"))
+            .Read(read => read.Action("Experience_Read", "Candidates"))
+            .Update(update => update.Action("Experience_Update", "Candidates"))
+            .Destroy(destroy => destroy.Action("Experience_Destroy", "Candidates"))
+            .Events(events => events.Error("error_handler"))
+        )
+    )
+</div>
+
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+            RefreshGrid(e);
+        }
+    }
+
+</script>

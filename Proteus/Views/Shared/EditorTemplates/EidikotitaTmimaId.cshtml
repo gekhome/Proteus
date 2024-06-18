@@ -1,0 +1,19 @@
+﻿@using System.Collections
+@using Proteus.Models
+@using Proteus.DAL
+@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(false)
+    .DataValueField("ΤΜΗΜΑ_ΚΩΔ")
+    .DataTextField("ΤΜΗΜΑ_ΟΝΟΜΑ")
+    .OptionLabel("Επιλογή...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("EidikotitaTmima_Read", "School").Data("filterTmimata");
+        }).ServerFiltering(true);
+    })
+)
+@Html.ValidationMessageFor(m => m)

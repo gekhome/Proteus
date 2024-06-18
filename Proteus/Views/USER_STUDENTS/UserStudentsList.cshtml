@@ -1,0 +1,86 @@
+﻿@model IEnumerable<Proteus.Models.sqlUserStudentViewModel>
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Λογαριασμοί σπουδαστών";
+    Layout = "~/Views/Shared/_LayoutMin.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 12px;
+    }
+</style>
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:10px 20px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Λογαριασμοί σπουδαστών για δοκιμαστική είσοδο</font>
+    </span>
+    <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Home", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>    
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+    @(Html.Kendo().Grid(Model)
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.USERNAME).Groupable(false).Width(20);
+            columns.Bound(c => c.CREATEDATE).Groupable(false).Width(22);
+            columns.Bound(c => c.USER_AFM).Groupable(false).Width(20);
+            columns.Bound(c => c.STUDENT_FULLNAME).Groupable(false).Width(50);
+            columns.Template(@<text></text>)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("RegisterUser", "USER_STUDENTS") + "?Afm=#=USER_AFM#'><span class=\"k-icon k-edit\"></span>ΕΙΣΟΔΟΣ</a>"
+            ).Width(20);
+        })
+        .HtmlAttributes(new { style = "display:block;font-size:14px" })
+        .Filterable()
+        .Groupable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(420))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .DataSource(datasource => datasource
+            .Ajax()
+            .PageSize(60)
+            .ServerOperation(true)
+            .Events(events => events.Error("error_handler"))
+            .Model(model => model.Id(p => p.USER_ID))
+            .Read(read => read.Action("UserStudent_Read", "USER_STUDENTS"))
+        )
+    )
+</div>
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        RefreshGrid(e);
+    }
+
+</script>
+
+
+
+
+

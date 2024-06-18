@@ -1,0 +1,140 @@
+﻿@{
+    ViewBag.Title = "Επικοινωνία";
+}
+
+<h1>@ViewBag.Title.</h1><p></p><p></p><br />
+@*<h2>@ViewBag.Message</h2>*@
+
+@(Html.Kendo().TabStrip()
+        .Name("ContactsTabStrip")
+        .Items(items =>
+        {
+            items.Add()
+                .Text("Τηλέφωνα")
+                .Selected(true)
+                .Content(@<text>
+                    <p class="sansserif"></p>
+                    <p class="sansserif">
+                        <span class="sansserif">Πληροφορίες για υποψήφιους σπουδαστές:</span>
+                    </p>
+                    <p><span class="sansserif">210 9989 128 - (Διευθυνση Δ3)</span></p>
+                    <p><span class="sansserif">210 9989 701 - (Διεύθυνση Δ3)</span></p>
+                    <p></p>
+                </text>)
+                .ContentHtmlAttributes(new { style = "min-height: 200px" });
+            items.Add()
+                .Text("Email")
+                .Content(@<text>
+                    <p class="sansserif"></p>
+                    <p class="sansserif">
+                        <span class="sansserif">E-mail υποστήριξης υποψηφίων σπουδαστών:</span>
+                    </p>
+                    <p></p>
+                    <p class="sansserif">
+                        <span><a href="mailto:a2iek@dypa.gov.gr">a2iek@dypa.gov.gr</a></span><br />
+                    </p>
+                    <p></p>
+                    <p class="sansserif">
+                        <span class="sansserif">E-mail υποστήριξης εκπαιδευτικών μονάδων:</span>
+                    </p>
+                    <p></p>
+                    <p class="sansserif">
+                        <span><a href="mailto:k.gioka@dypa.gov.gr">k.gioka@dypa.gov.gr (Αικατερίνη Γκιόκα)</a></span><br />
+                    </p>
+                    <p class="sansserif">
+                        <span><a href="mailto:e.moutsaki@dypa.gov.gr">e.moutsaki@dypa.gov.gr (Ευανθία Μουτσάκη)</a></span><br />
+                    </p>
+                    <p class="sansserif">
+                        <span><a href="mailto:kntalianis@dypa.gov.gr">kntalianis@dypa.gov.gr (Κωνσταντίνος Νταλιάνης)</a></span><br />
+                    </p>
+                    <p class="sansserif"></p>
+                    <p></p>
+
+                </text>)
+                .ContentHtmlAttributes(new { style = "min-height: 200px" });
+            items.Add()
+                .Text("Διεύθυνση")
+                .Content(@<text>
+                    <table>
+                        <tr>
+                            <td width="300">
+                                <p></p><br />
+                                <p class="sansserif" style="text-shadow:1px 1px 2px grey; font-size:22px">
+                                    Διοίκηση Δ.ΥΠ.Α.
+                                </p>
+                                <p></p><br />
+                                <p class="sansserif" style="text-shadow:1px 1px 2px grey; font-size:larger">
+                                    Εθν. Αντιστάσεως 8
+                                </p>
+                                <p class="sansserif" style="text-shadow:1px 1px 2px grey; font-size:larger">
+                                    Τ.Κ. 17456
+                                </p>
+                                <p class="sansserif" style="text-shadow:1px 1px 2px grey; font-size:larger">
+                                    ΑΛΙΜΟΣ, ΑΤΤΙΚΗ
+                                </p>
+                            </td>
+                            <td>
+                                <p style="margin:5px">
+                                    <img style=" border:1px solid grey"src="~/Images/other/oaed-map.jpg" height="400" width="500" />
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                </text>)
+                .ContentHtmlAttributes(new { style = "min-height: 200px" });
+        })
+)
+
+<p></p><p></p>
+
+@*<aside>
+    <p>Σύνδεσμοι</p>
+    <p></p>
+
+    @(Html.Kendo().TreeView()
+        .Name("LinksTreeView")
+        .Items(items =>
+        {
+            items.Add()
+                .Text("Αρχική")
+                .Action("Index", "Home");
+            items.Add()
+                .Text("Σχετικά")
+                .Action("About", "Home");
+            items.Add()
+                .Text("Επικοινωνία")
+                .Action("Contact", "Home");
+        })
+    )
+</aside>*@
+
+<p></p><p></p>
+
+<div>
+    <hr style="background-color:#000080">
+    <table width:100%>
+        <tr>
+            <td width="10%" align="left"><img src="~/images/metro/dypa-logo.png" height="70" width="86" /></td>
+            <td align="center">
+                <font color="#000000" size="3" style="font-weight:600">Διεύθυνση Επαγγελματικής Κατάρτισης</font>
+            </td>
+        </tr>
+        <tr>
+            <td width="10%" align="left"></td>
+            <td align="center">
+                <font color="#000000" size="2">Μελέτη-Ανάπτυξη: Δρ. Γεώργιος Κυριακάκης</font>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+
+
+
+
+
+
+
+

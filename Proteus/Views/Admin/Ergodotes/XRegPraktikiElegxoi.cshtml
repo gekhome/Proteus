@@ -1,0 +1,128 @@
+﻿@model regPraktikiElegxosViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Μητρώο ελέγχων πρακτικής";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 10px;
+    }
+</style>
+
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 5px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Μητρώο ελέγχων πρακτικής</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+        @(Html.Kendo().Grid<regPraktikiElegxosViewModel>()
+        .Name("grid")
+        .HtmlAttributes(new { style = "display: block;font-size:12px" })
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.SCHOOL_NAME).Width(20);
+            columns.Bound(c => c.ΕΛΕΓΚΤΗΣ).Width(25).Groupable(false);
+            columns.Bound(c => c.ΕΛΕΓΧΟΣ_ΗΜΕΡΟΜΗΝΙΑ).Width(16);
+            columns.Bound(c => c.ΟΝΟΜΑΤΕΠΩΝΥΜΟ).Width(30);
+            columns.Bound(c => c.EIDIKOTITA_TEXT).Width(50);
+            columns.Bound(c => c.ΕΡΓΟΔΟΤΗΣ_ΕΠΩΝΥΜΙΑ).Width(40)
+                .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(m => m.ΕΛΕΓΧΟΣ_ΚΩΔΙΚΟΣ).Filterable(false).Groupable(false)
+                .ClientTemplate(
+                "<a class=\"k-button k-button-icontext\" href='" + Url.Action("XPraktikiElegxosPrint", "Admin") + "?elegxosId=#=ΕΛΕΓΧΟΣ_ΚΩΔΙΚΟΣ#' target = _blank><span class=\"k-icon k-justifyFull\"></span>Εκτύπωση</a>")
+                .Title("").Width(22);
+        })
+        .Selectable()
+        .Groupable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .Filterable()
+        .Resizable(resize => resize.Columns(true))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(380))
+        .DataSource(dataSource => dataSource
+            .Ajax()
+            .PageSize(60)
+            .ServerOperation(true)
+            .Model(model =>
+            {
+                model.Id(p => p.ΕΛΕΓΧΟΣ_ΚΩΔΙΚΟΣ);
+
+            })
+            .Read(read => read.Action("RegPraktikiElegxoi_Read", "Admin"))
+            //.Group(g => g.Add(p => p.SCHOOL_NAME))            
+            .Aggregates(a =>
+            {
+                a.Add(p => p.ΕΡΓΟΔΟΤΗΣ_ΕΠΩΝΥΜΙΑ).Count();
+            })
+            .Events(events => events.Error("error_handler"))
+            )
+        .Events(events => events.Change("change"))
+
+        )  @* --- data grid ---*@
+</div>
+
+<div id="partialDiv" class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+    @Html.Partial("XRegPraktikiElegxosPartial")
+</div>
+
+<script id="events" type="text/javascript">
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var dataID = dataItem.ΕΛΕΓΧΟΣ_ΚΩΔΙΚΟΣ;
+        //alert("ergodotisID=" + ergodotisID);
+        // Handle data source of partial view
+        $.ajax({
+            url: '@Url.Action("GetPraktikiElegxosRecord", "Admin")?elegxosId=' + dataID,
+            type: 'GET',
+            data: "",
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                $("#partialDiv").html(data);
+            },
+            error: function () {
+                MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+            }
+    });
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#grid").data("kendoGrid");
+        grid.dataSource.read();
+
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+    }
+
+</script>
+
+
+
+
+

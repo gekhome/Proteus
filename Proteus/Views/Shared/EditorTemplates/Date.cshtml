@@ -1,0 +1,5 @@
+@model DateTime?
+
+@*For Chrome compatibility as it does not display dates with the default editor*@
+
+@(Html.Kendo().DatePickerFor(m => m).HtmlAttributes(new { type = "text" }))

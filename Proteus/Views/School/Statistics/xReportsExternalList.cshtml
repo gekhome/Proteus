@@ -1,0 +1,86 @@
+﻿@using Proteus.Models
+
+@{
+    ViewBag.Title = "Εκθέσεις για φορείς";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 12px;
+    }
+</style>
+
+@Html.AntiForgeryToken()
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 0px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;font-family:'Segoe UI'">Εκθέσεις στοιχείων για εξωτερικούς φορείς</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px">
+
+    @(Html.Kendo().Grid<SysReportViewModel>()
+        .Name("Grid")
+        .Columns(columns =>
+        {
+            columns.Bound(m => m.DOC_DESCRIPTION).Width(140).Title("Περιγραφή έκθεσης").ClientFooterTemplate("Πλήθος εκθέσεων: #=count#");
+            columns.Template(@<text></text>)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("ReportSelectorExternal", "School") + "?reportId=#=DOC_ID#' target = _blank><span class=\"k-icon k-justifyFull\"></span>Εκτύπωση</a>"
+            ).Width(24);
+        })
+        .HtmlAttributes(new { style = "font-size:13px" })
+        .Navigatable()
+        .Filterable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(420))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+        .Ajax()
+        .Batch(false)
+        .PageSize(20)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.DOC_ID);
+        })
+        .Read(read => read.Action("ReportsExternal_Read", "School"))
+        .Events(events => events.Error("error_handler"))
+        .Aggregates(a =>
+        {
+            a.Add(p => p.DOC_DESCRIPTION).Count();
+        })
+
+        ) @* datasource*@
+    )
+
+</div>
+
+<script type="text/javascript">
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Σφάλμα:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+</script>

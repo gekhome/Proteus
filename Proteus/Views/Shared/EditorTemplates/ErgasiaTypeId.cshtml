@@ -1,0 +1,17 @@
+﻿@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(true)
+    .DataValueField("TYPE_ID")
+    .DataTextField("TYPE_TEXT")
+    .OptionLabel("Επιλογή ...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("ErgasiaType_Read", "Programma");
+        })
+        .ServerFiltering(true);
+    })
+)
+@Html.ValidationMessageFor(m => m)

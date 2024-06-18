@@ -1,0 +1,120 @@
+﻿@model SYS_SCHOOLSViewModel
+@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style scoped="scoped">
+        .k-detail-cell .k-tabstrip .k-content {
+            padding: 0.2em;
+        }
+
+        .school-details ul {
+            list-style: none;
+            font-style: italic;
+            margin: 10px;
+            padding: 0;
+        }
+
+        .school-details ul li {
+            margin: 0;
+            line-height: 1.7em;
+        }
+
+        .school-details label {
+            display: inline-block;
+            width: 200px;
+            padding-right: 10px;
+            text-align: right;
+            font-style: normal;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="body-content" style="margin:5px 0px 5px 0px;font-size:small;">
+
+        @(Html.Kendo().TabStrip()
+        .Name("TabStrip")
+        .SelectedIndex(0)
+        .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+        .Items(items =>
+        {
+            items.Add().Text("Ειδικότητες").Content(@<text>
+
+            @(Html.Kendo().Grid<qryIekEidikotitesViewModel>()
+            .Name("eidikotites")
+            .Columns(columns =>
+            {
+                columns.Bound(c => c.EIDIKOTITA_TEXT).Width(65);
+            })
+            .HtmlAttributes(new { style="font-size:12px" })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(20)
+                .Read(read => read.Action("IekEidikotites_Read", "Admin", new { schoolId = Model.SCHOOL_ID }))
+            )
+            .Pageable(pageable => pageable
+            .Refresh(true)
+            .PageSizes(true)
+            .ButtonCount(3))
+            .Sortable()
+            .Filterable()
+            .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+            .Scrollable(scr => scr.Height(140))
+            )
+            </text>);
+            items.Add().Text("Στοιχεία σχολείου").Content(
+                @<div class="school-details">
+                     <table>
+                         <tr>
+                             <td style="width:500px">
+                                 <ul>
+                                     <li>
+                                         <label>Διευθυντής:</label>@Model.SCHOOL_DIRECTOR
+                                     </li>
+                                     <li>
+                                         <label>Αναπληρωτής:</label>@Model.SCHOOL_DEPUTY
+                                     </li>
+                                     <li>
+                                         <label>Διεύθυνση:</label>@Model.SCHOOL_ADDRESS
+                                     </li>
+                                     <li>
+                                         <label>ΤΚ-Πόλη:</label>@Model.SCHOOL_TK_CITY
+                                     </li>
+
+                                </ul>
+                         </td>
+                             <td style="width:500px">
+                                 <ul>
+                                     <li>
+                                         <label>Τηλέφωνα:</label>@Model.SCHOOL_PHONE
+                                     </li>
+                                     <li>
+                                         <label>Fax:</label>@Model.SCHOOL_FAX
+                                     </li>
+                                     <li>
+                                         <label>E-Mail:</label>@Model.SCHOOL_EMAIL
+                                     </li>
+                                     <li>
+                                         <label>Πληροφορίες:</label>@Model.SCHOOL_INFO
+                                     </li>
+                             </ul>
+                         </td>
+                     </tr>
+                 </table>
+                </div>);
+        })
+        )   @*-- Tabstrip ---*@
+    </div>
+</body>
+</html>

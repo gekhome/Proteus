@@ -1,0 +1,574 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Ωρολόγιο πρόγραμμα";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<div class="page-header" style="margin:5px 20px 5px 20px">
+    <span style="margin:5px 20px 5px 20px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Ωρολόγιο πρόγραμμα μαθημάτων</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="transferWeekCustom()">Προσαρμοσμένη μεταφορά εβδομάδας</button>
+</div>
+
+<div class="body-content" style="margin:10px 20px 5px 20px">
+        @(Html.Kendo().Grid<sqlTmimataViewModel>()
+        .Name("Master")
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΤΜΗΜΑ_ΟΝΟΜΑ).Width(20).Groupable(false);
+            columns.Bound(c => c.ΠΕΡΙΟΔΟΣ).Width(12);
+            columns.Bound(c => c.TERM).Width(10);
+            columns.Bound(c => c.EIDIKOTITA_TEXT).Width(70)
+                .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+                .ClientGroupFooterTemplate("Πλήθος: #=count#");
+            columns.Bound(c => c.ΤΜΗΜΑ_ΚΩΔ).Width(10).Hidden();
+            columns.Bound(c => c.EIDIKOTITA_ID).Width(10).Hidden();
+            columns.Bound(c => c.TERM_ID).Width(10).Hidden();
+            columns.Bound(c => c.PERIOD_ID).Width(10).Hidden();
+        })
+        .Navigatable()
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(10))
+        .Selectable()
+        .Filterable()
+        .HtmlAttributes(new { style = "font-size:12px" })
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(220))
+        .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(60)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΤΜΗΜΑ_ΚΩΔ);
+        })
+        .Read(read => read.Action("TmimataNew_Read", "Programma"))
+        .Aggregates(a =>
+        {
+            a.Add(p => p.EIDIKOTITA_TEXT).Count();
+        })
+        .Events(events => events.Error("error_handler"))
+        )
+        .Events(events => events.Change("change"))
+        )
+    </div>
+
+<div class="body-content" style="margin:5px 20px 5px 20px;font-size:14px;background-color:dimgray;padding:4px 4px 4px 4px;min-height:40px">
+    <label id="dayOfWeek" style="margin-left:5px;margin-right:5px;font-size:15px;font-weight:bold;color:white;font-family:'Segoe UI'"></label>
+
+    @(Html.Kendo().DatePicker()
+        .Name("datepicker")
+        .Value(DateTime.Today)
+        .Enable(false)
+        .HtmlAttributes(new { style = "width:120px;font-size:14px;font-weight:bold", type = "text" })
+        .Events(e =>
+        {
+            e.Change("dpchange");
+        })
+    )
+
+    <label id="dateWeek" style="font-size:14px;font-weight:bold;color:white;margin-left:5px;margin-right:10px;">Εβδ. :</label>
+    <label style="font-size:14px;font-weight:bold;color:white;margin-left:5px;margin-right:5px;">Επιλογή εβδ. :</label>
+    @(Html.Kendo().DropDownList()
+        .Name("ddlweek")
+        .DataTextField("NUMBER")
+        .DataValueField("NUMBER")
+        .HtmlAttributes(new { style = "width:46px;font-size:12px;font-weight:bold" })
+        .OptionLabel("...")
+        .AutoBind(true)
+        .Enable(true)
+        .DataSource(source => { source.Read(read => read.Action("GetWeekNumbers", "Programma")); })
+    )
+
+    <span style="margin-right:2px;margin-left:5px;float:right;font-family:'Segoe UI'">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="transferWeek()" value="Μεταφορά εβδομάδας" class="btn btn-default" title="Μεταφορά τελευταίας καταχωρημένης εβδομάδας στην αμέσως επόμενη" />
+    </span>
+    <span style="margin-right:0px;float:right;font-family:'Segoe UI'">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="transferDay()" value="Μεταφορά ημέρας" class="btn btn-default" title="Μεταφορά αντίστοιχης ημέρας της προηγούμενης εβδομάδας στην επιλεγμένη" />
+    </span>
+    <span style="margin-right:5px;float:right;font-family:'Segoe UI'">
+        <input style="font-family:'Segoe UI';font-size:13px" type="button" onclick="transferHour()" value="Μεταφορά ώρας" class="btn btn-default" title="Μεταφορά τελευταίας αποθηκευμένης ώρας στην αμέσως επόμενη"/>
+    </span>
+</div>
+
+<div class="body-content" style="margin:10px 20px 5px 20px">
+        @(Html.Kendo().Grid<ProgrammaDayViewModel>()
+        .Name("Child")
+        .AutoBind(false)
+        .HtmlAttributes(new { style="font-size:11px" })
+        .Navigatable()
+        .Editable(editable => editable.Mode(GridEditMode.InCell).CreateAt(GridInsertRowPosition.Bottom).DisplayDeleteConfirmation(false))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(240))
+        .Columns(columns =>
+        {
+            columns.ForeignKey(f => f.ΩΡΑ, (IEnumerable<NUMBERS>)ViewData["hours"], "NUMBER", "NUMBER").Width(8).HtmlAttributes(new { style = "font-size:10px" });
+            columns.ForeignKey(f => f.ΚΩΔ_ΜΑΘΗΜΑ, (IEnumerable<qryIEK_EIDIKOTITES_LESSONS>)ViewData["lessons"], "LESSON_ID", "LESSON_DESC")
+                .Width(44).EditorTemplateName("ProgrammaLessonId").HtmlAttributes(new { style = "font-size:9px" });
+            columns.ForeignKey(f => f.ΚΩΔ_ΕΡΓΑΣΙΑ, (IEnumerable<ΕΡΓΑΣΙΕΣ>)ViewData["ergasies"], "ΚΩΔ_ΕΡΓΑΣΙΑ", "ΕΡΓΑΣΙΑ").Width(13).Title("Εργασία");
+            columns.ForeignKey(f => f.ΕΚΠΑΙΔΕΥΤΗΣ1, (IEnumerable<sqlTEACHERS_IN_PERIODS>)ViewData["teachers"], "TEACHER_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(26).EditorTemplateName("ProgrammaTeacherId");
+            columns.Bound(f => f.Π1).Width(5).Filterable(false).ClientTemplate("<input type='checkbox' #= Π1 ? checked='checked':'' # class='chkbx' />");
+            columns.ForeignKey(f => f.ΕΚΠΑΙΔΕΥΤΗΣ2, (IEnumerable<sqlTEACHERS_IN_PERIODS>)ViewData["teachers"], "TEACHER_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(26).EditorTemplateName("ProgrammaTeacherId");
+            columns.Bound(f => f.Π2).Width(5).Filterable(false).ClientTemplate("<input type='checkbox' #= Π2 ? checked='checked':'' # class='chkbx' />");
+            columns.ForeignKey(f => f.ΕΚΠΑΙΔΕΥΤΗΣ3, (IEnumerable<sqlTEACHERS_IN_PERIODS>)ViewData["teachers"], "TEACHER_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(24).EditorTemplateName("ProgrammaTeacherId");
+            columns.Bound(f => f.Π3).Width(5).Filterable(false).ClientTemplate("<input type='checkbox' #= Π3 ? checked='checked':'' # class='chkbx' />");
+            columns.Command(command => { command.Destroy(); }).Width(15);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+            toolBar.Save();
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(true)
+            .PageSize(20)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΠΡΟΓΡΑΜΜΑ_ΚΩΔ);
+                model.Field(p => p.ΩΡΑ).DefaultValue(1);
+                model.Field(p => p.ΚΩΔ_ΜΑΘΗΜΑ).DefaultValue(0);
+                model.Field(p => p.ΚΩΔ_ΕΡΓΑΣΙΑ).DefaultValue((int)ViewData["defaultErgasia"]);
+                model.Field(p => p.ΕΚΠΑΙΔΕΥΤΗΣ1).DefaultValue(0);
+                model.Field(p => p.ΕΚΠΑΙΔΕΥΤΗΣ2).DefaultValue(0);
+                model.Field(p => p.ΕΚΠΑΙΔΕΥΤΗΣ3).DefaultValue(0);
+                model.Field(p => p.Π1).DefaultValue(false);
+                model.Field(p => p.Π2).DefaultValue(false);
+                model.Field(p => p.Π3).DefaultValue(false);                         
+            })
+            .Create(create => create.Action("Programma_Create", "Programma").Data("data2"))
+            .Read(read => read.Action("Programma_Read", "Programma").Data("data"))
+            .Update(update => update.Action("Programma_Update", "Programma").Data("data2"))
+            .Destroy(destroy => destroy.Action("Programma_Destroy", "Programma"))
+            .Events(events => events.Error("error_handler"))
+        )
+        )
+</div>
+
+<div id="modalWindow">
+    <div style="margin-left:10px;margin-bottom:10px;font-family:'Segoe UI';">
+        <label style="font-size:14px;font-weight:normal;color:black;margin-left:5px;margin-right:5px;">Επιλογή εβδομάδας προέλευσης :</label>
+        @(Html.Kendo().DropDownList()
+        .Name("ddlweek2")
+        .DataTextField("NUMBER")
+        .DataValueField("NUMBER")
+        .HtmlAttributes(new { style = "width:50px;font-size:12px;font-weight:bold" })
+        .OptionLabel("...")
+        .AutoBind(true)
+        .Enable(true)
+        .DataSource(source => { source.Read(read => read.Action("GetWeekNumbers", "Programma")); })
+        )
+    </div>
+    <div style="margin-left:10px;margin-top:10px;font-family:'Segoe UI';">
+        <label style="font-size:14px;font-weight:normal;color:black;margin-left:5px;margin-right:5px;">Αρχική ημερομηνία προορισμού :</label>
+        @(Html.Kendo().DatePicker()
+        .Name("datepicker2")
+        .Value(DateTime.Today)
+        .Enable(true)
+        .HtmlAttributes(new { style = "width:120px;font-size:14px;font-weight:bold", type = "text" })
+        )
+    </div>
+    <div style="margin-left:10px;margin-top:10px;font-family:'Segoe UI';">
+        <label style="font-size:14px;font-weight:bold;color:black;margin-left:5px;margin-right:5px;">Μηνύματα:</label><br />
+        <textarea id="messages" rows="6" cols="90" wrap="hard" readonly style="font-size:13px"></textarea>
+    </div>
+    <div style="margin-left:0px;margin-top:20px;text-align:center;">
+        <button id="yes" class="k-button">Εκτέλεση</button>
+        <button id="no" class="k-button" style="margin-left:5px">Ακύρωση/Κλείσιμο</button>
+    </div>
+</div>
+
+<script id="checkbox-events" type="text/javascript">
+
+    $(document).ready(function () {
+        var curDate = new Date();
+        var weekday = ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"];
+        var dayName = weekday[curDate.getDay()];
+
+        $("#dayOfWeek").text(dayName).attr('title', dayName);
+
+        initialText = "Η λειτουργία αυτή μεταφέρει το πρόγραμμα της επιλεγμένης εβδομάδας στην εβδομάδα ";
+        initialText += "με ημερομηνία έναρξης την επιλεγμένη ημ/νία προορισμού. Ο αριθμός της νέας εβδομάδας είναι ο αμέσως ";
+        initialText += "επόμενος από αυτόν της τελευταίας καταχωρημένης εβδομάδας. Σε περίπτωση που η εβδομάδα προορισμού ";
+        initialText += "δεν αρχίζει από Δευτέρα, θα μεταφερθούν μόνο οι αντίστοιχες ημέρες της εβδομάδας προέλευσης.";
+        initialText += "Κύριος σκοπός της είναι η συμπλήρωση της 1ης εβδομάδας μετα από διακοπές Χριστουγέννων ή Πάσχα.";
+
+        $('#messages').val(initialText);
+
+        wnd = $("#modalWindow").kendoWindow({
+            title: "Προσαρμοσμένη μεταφορά εβδομάδας",
+            modal: true,
+            visible: false,
+            resizable: false,
+            height: 300,
+            width: 600
+        }).data("kendoWindow");
+
+    });
+
+    // Date: 16-11-2018
+    // Listener for the state of the three checkboxes (Π1, Π2, Π3).
+    // Required, otherwise changes do not take effect in batch mode of the grid.
+    // THIS IS IT! It works for any number of checkbox columns. All other solutions fail!
+    // in batch editing mode of the grid.
+    // Solution link: https://stackoverflow.com/questions/17889049/adding-bindeable-checkbox-column-to-grid
+    $(function () {
+        $('#Child').on('click', '.chkbx', function () {
+            var checked = $(this).is(':checked');
+            var grid = $('#Child').data().kendoGrid;
+
+            grid.closeCell();
+            var dataItem = grid.dataItem($(this).closest('tr'));
+            var col = $(this).closest('td');
+
+            grid.editCell(col);
+            dataItem.set(grid.columns[col.index()].field, checked);
+            grid.closeCell(col);
+        });
+    });
+
+</script>
+
+<script id="automation" type ="text/javascript">
+
+    function transferHour() {
+        var datepicker = $("#datepicker").data("kendoDatePicker");
+        var selectedDate = datepicker.value();
+
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+
+        var params = {
+            tmimaId: tmimaID,
+            theDate: selectedDate
+        };
+
+        $.ajax({
+            url: '@Url.Action("TransferHour", "Programma")',
+            type: 'POST',
+            data: JSON.stringify(params),
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                if (result) MessageBoxAlert(result, "Μήνυμα");
+                RefreshGrid();
+            },
+            error: function () {
+                MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+            }
+        });
+    }
+
+    function transferDay() {
+        var datepicker = $("#datepicker").data("kendoDatePicker");
+        var selectedDate = datepicker.value();
+
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        var params = {
+            tmimaId: tmimaID,
+            theDate: selectedDate
+        };
+
+        var someDate = new Date(selectedDate);
+        var numberOfDaysToAdd = -7;
+        someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
+        var date = someDate.getDate() + '/' + (someDate.getMonth() + 1) + '/' + someDate.getFullYear();
+
+        var text = "Η λειτουργία αυτή μεταφέρει το πρόγραμμα της ίδιας ημέρας από την αμέσως προηγούμενη εβδομάδα.<br/>";
+        text += "Να γίνει μεταφορά του προγράμματος της " + date.toString() + " στην επιλεγμένη ημέρα;";
+
+        MessageBoxConfirm(text, "Μεταφορά ημέρας").done(function () {
+            $.ajax({
+                url: '@Url.Action("TransferDay", "Programma")',
+                type: 'POST',
+                data: JSON.stringify(params),
+                contentType: 'application/json; charset=utf-8',
+                success: function (outcome) {
+                    if (outcome) MessageBoxAlert(outcome, "Μήνυμα");
+                    RefreshGrid();
+                },
+                error: function () {
+                    MessageBoxAlert("Προέκυψε σφάλμα. Δοκιμάστε πάλι αργότερα.", "Σφάλμα");
+                }
+            });
+        }).fail(function () {
+            return;
+        });
+    }
+
+    function transferWeek() {
+        var datepicker = $("#datepicker").data("kendoDatePicker");
+        var selectedDate = datepicker.value();
+
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        var params = {
+            tmimaId: tmimaID,
+            theDate: selectedDate
+        };
+
+        var message = "Να γίνει η μεταφορά του προγράμματος της τελευταίας καταχωρημένης εβδομάδας στην αμέσως επόμενη;"
+
+        MessageBoxConfirm(message, "Μεταφορά εβδομάδας").done(function () {
+            $.ajax({
+                url: '@Url.Action("TransferWeek", "Programma")',
+                type: 'POST',
+                data: JSON.stringify(params),
+                contentType: 'application/json; charset=utf-8',
+                success: function (outcome) {
+                    if (outcome) MessageBoxAlert(outcome, "Μήνυμα");
+                },
+                error: function () {
+                    MessageBoxAlert("Προέκυψε σφάλμα. Δοκιμάστε πάλι αργότερα.", "Σφάλμα");
+                }
+            });
+        }).fail(function () {
+            return;
+        });
+    }
+
+    function transferWeekCustom() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var datepicker = $("#datepicker2").data("kendoDatePicker");
+        var weekID = $("#ddlweek2").data("kendoDropDownList").value();
+
+        var selectedDate = datepicker.value();
+        var tmimaID = 0;
+        if (dataItem) {
+            tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+        }
+        else {
+            MessageBoxAlert("Για να γίνει η προσαρμοσμένη μεταφορά εβδομάδας πρέπει πρώτα να επιλέξετε τμήμα.");
+            return;
+        }
+        // Open user-dialog window
+        wnd.center().open();
+
+        $("#yes").click(function () {
+            var selectedDate = $("#datepicker2").data("kendoDatePicker").value();
+            var weekID = $("#ddlweek2").data("kendoDropDownList").value();
+
+            var userData = {
+                tmimaId: tmimaID,
+                weekId: weekID,
+                theDate: selectedDate
+            }
+
+            var text = "Η μεταφορά εβδομάδας ξεκίνησε. Μη κλείσετε το παράθυρο...";
+            $('#messages').val(text);
+
+            if (tmimaID > 0 && weekID > 0 && selectedDate) {
+                $.ajax({
+                    url: '@Url.Action("TransferWeekCustom", "Programma")',
+                    type: 'POST',
+                    data: JSON.stringify(userData),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (outcome) {
+                        if (outcome) $('#messages').val(outcome);
+                    },
+                    error: function () {
+                        MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+                    }
+                });
+            }
+            else {
+                var text = "Για να γίνει η μεταφορά πρέπει να επιλέξετε εβδομάδα προέλευσης και αρχική ημερομηνία προορισμού."                
+                $('#messages').val(text);
+            }
+        });
+
+        $("#no").click(function () {
+            windowReset();
+            wnd.close();
+        });
+    }
+
+    function windowReset() {
+        $('#ddlweek2').data("kendoDropDownList").select(0);
+        var todayDate = new Date();
+        $('#datepicker2').data("kendoDatePicker").value(todayDate);      //.trigger("change"); prevents window from closing!
+        $('#messages').val(initialText);
+    }
+
+</script>
+
+<script id="grid-events" type="text/javascript">
+
+    function filterTeachers() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var periodID = 0;
+        if (dataItem) {
+            periodID = dataItem.PERIOD_ID;           
+        }
+        return { periodId: periodID };
+    }
+
+    function filterLessons() {
+        var masterGrid = $("#Master").data("kendoGrid");
+
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var eidikotitaID = dataItem.EIDIKOTITA_ID;
+        var termID = dataItem.TERM_ID;
+        return {
+            eidikotitaId: eidikotitaID,
+            termId: termID
+        }
+    }
+
+    function RefreshGrid(e) {
+        var grid = $("#Child").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function dpchange() {
+        var selectedDate = this.value();
+
+        var weekday = ["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"];
+        var dayName = weekday[selectedDate.getDay()];
+
+        $("#dayOfWeek").text(dayName).attr('title', dayName);
+
+        var masterGrid = $("#Master").data("kendoGrid");
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+
+        $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, theDate: selectedDate });
+        $("#Child").css("display", "block");
+
+        if (!tmimaID || !selectedDate) return;
+
+        var params = {
+            tmimaId: tmimaID,
+            theDate: selectedDate
+        };
+
+        $.ajax({
+            url: '@Url.Action("GetWeekOfDate", "Programma")',
+            type: 'POST',
+            data: JSON.stringify(params),
+            contentType: 'application/json; charset=utf-8',
+            success: function (out) {
+                if (out != "") {
+                    $("#dateWeek").text("Εβδ. : " + out + "η").attr('title', out + "η εβδομάδα");
+                }
+                else {
+                    $("#dateWeek").text("Εβδ. : " + "Δ/Υ").attr('title', "Δεν υπάρχει καταχώρηση");
+                }
+            },
+            error: function () {
+                MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+            }
+        });
+    }
+
+    function change(e) {
+        var datepicker = $("#datepicker").data("kendoDatePicker");
+
+        datepicker.enable();
+        var selectedDate = datepicker.value();
+
+        var dataItem = this.dataItem(this.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+
+        $("#Child").data("kendoGrid").dataSource.read({ tmimaId: tmimaID, theDate: selectedDate });
+        $("#Child").css("display", "block");
+
+        var params = {
+            tmimaId: tmimaID,
+            theDate: selectedDate
+        };
+        
+        $.ajax({
+            url: '@Url.Action("GetWeekOfDate", "Programma")',
+            type: 'POST',
+            data: JSON.stringify(params),
+            contentType: 'application/json; charset=utf-8',
+            success: function (out) {
+                if (out != "") {
+                    $("#dateWeek").text("Εβδ. : " + out + "η").attr('title', out + "η εβδομάδα");
+                }
+                else {
+                    $("#dateWeek").text("Εβδ. : " + "Δ/Υ").attr('title', "Δεν υπάρχει καταχώρηση");
+                }
+            },
+            error: function () {
+                MessageBoxAlert("Προέκυψε σφάλμα ανάκτησης δεδομένων.");
+            }
+        });
+    }
+
+    function data() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var datepicker = $("#datepicker").data("kendoDatePicker");
+        selectedDate = datepicker.value();
+
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+
+        return {
+            tmimaId: tmimaID,
+            theDate: selectedDate
+        }
+    }
+
+    function data2() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var datepicker = $("#datepicker").data("kendoDatePicker");
+        var weekID = $("#ddlweek").data("kendoDropDownList").value();
+
+        selectedDate = datepicker.value();
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+
+        if (dataItem && weekID > 0 && selectedDate) {
+            var tmimaID = dataItem.ΤΜΗΜΑ_ΚΩΔ;
+            return {
+                tmimaId: tmimaID,
+                theDate: selectedDate,
+                week: weekID
+            }
+        }
+        else {
+            return {
+                tmimaId: 0,
+                theDate: null,
+                week: 0
+            }
+        }
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+    }
+
+</script>
+

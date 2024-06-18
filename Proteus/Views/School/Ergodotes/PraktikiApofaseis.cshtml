@@ -1,0 +1,185 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+
+@{
+    ViewBag.Title = "Αποφάσεις πρακτικής";
+    Layout = "~/Views/Shared/_SchoolLayout.cshtml";
+}
+
+<style>
+    .k-grid {
+        font-size: 10px;
+    }
+</style>
+
+
+<div class="page-header" style="margin:5px 30px 5px 30px">
+    <span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:large;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Αποφάσεις πρακτικής άσκησης</font>
+    </span>
+    <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "School", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-info" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+    @*<span style="margin:5px 30px 5px 30px;font-family:'Segoe UI';font-size:medium;text-shadow:1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Αιτήσεις πρακτικής</font>
+    </span>*@
+
+    @(Html.Kendo().Grid<AitiseisPraktikisViewModel>()
+    .Name("Master")
+    .Columns(columns =>
+    {
+        columns.Bound(c => c.ΟΝΟΜΑΤΕΠΩΝΥΜΟ).Width(30).Groupable(false)
+            .ClientFooterTemplate("Συνολικό πλήθος: #=count#")
+            .ClientGroupFooterTemplate("Πλήθος: #=count#");
+        columns.Bound(c => c.EIDIKOTITA_TEXT).Width(50);
+        columns.Bound(c => c.ΠΡΩΤΟΚΟΛΛΟ).Width(12);
+        columns.Bound(c => c.ΗΜΕΡΟΜΗΝΙΑ).Width(12);
+        columns.Bound(c => c.ΕΡΓΟΔΟΤΗΣ_ΕΠΩΝΥΜΙΑ).Width(54);
+        columns.Bound(c => c.ΑΙΤΗΣΗ_ΚΩΔ).Width(5).Hidden();
+        columns.Bound(c => c.ΕΡΓΟΔΟΤΗΣ).Width(5).Hidden();
+        columns.Bound(c => c.ΜΑΘΗΤΗΣ_ΚΩΔ).Width(5).Hidden();
+    })
+    .HtmlAttributes(new { style="font-size:12px" })
+    .Navigatable()
+    .Pageable(pageable => pageable
+    .Refresh(true)
+    .PageSizes(true)
+    .ButtonCount(5))
+    .Selectable()
+    .Filterable()
+    .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+    .Scrollable(scr => scr.Height(300))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(true)
+        .PageSize(40)
+        .ServerOperation(false)
+        .Model(model =>
+        {
+            model.Id(p => p.ΕΡΓ_ΠΡΑΚΤΙΚΗ_ΚΩΔ);
+        })
+        .Read(read => read.Action("AitiseisPraktiki_Read", "Ergodotes"))
+        .Aggregates(a =>
+        {
+            a.Add(p => p.ΟΝΟΜΑΤΕΠΩΝΥΜΟ).Count();
+        })
+    )
+    .Events(events => events.Change("change"))
+    )
+</div>
+
+
+<div class="body-content" style="margin:10px 30px 5px 30px;font-size:small">
+
+    @(Html.Kendo().PanelBar()
+    .Name("Panel1")
+    .Items(items =>
+    {
+        items.Add()
+            .Text("Αποφάσεις πρακτικής")
+            .Selected(false)
+            .Expanded(true)
+            .Content(
+            @<text>
+
+        @(Html.Kendo().Grid<PraktikiApofasiViewModel>()
+        .Name("Child")
+        .AutoBind(false)
+        .HtmlAttributes(new { style = "font-size:13px" })
+        .Navigatable()
+        .Filterable()
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .Scrollable(scr => scr.Height(200))
+        .Columns(columns =>
+        {
+            columns.Bound(c => c.ΠΡΩΤΟΚΟΛΛΟ).Width(14);
+            columns.Bound(c => c.ΗΜΕΡΟΜΗΝΙΑ).Width(18);
+            columns.ForeignKey(f => f.ΜΑΘΗΤΗΣ_ΚΩΔ, (IEnumerable<qrySTUDENT_PRAKTIKI_SELECTOR>)ViewData["students"], "STUDENT_ID", "ΟΝΟΜΑΤΕΠΩΝΥΜΟ").Width(34);
+            columns.ForeignKey(f => f.ΕΡΓΟΔΟΤΗΣ, (IEnumerable<ΕΡΓΟΔΟΤΕΣ>)ViewData["ergodotes"], "ΕΡΓΟΔΟΤΗΣ_ΚΩΔ", "ΕΡΓΟΔΟΤΗΣ_ΕΠΩΝΥΜΙΑ").Width(42);
+            columns.Command(command => { command.Edit(); command.Destroy(); }).Width(36);
+            columns.Bound(m => m.ΑΠΟΦΑΣΗ_ΚΩΔΙΚΟΣ).Filterable(false)
+            .ClientTemplate(
+            "<a class=\"k-button k-button-icontext\" href='" + Url.Action("PraktikiApofasiPrint", "Ergodotes") + "?apofasiId=#=ΑΠΟΦΑΣΗ_ΚΩΔΙΚΟΣ#' target = _blank><span class=\"k-icon k-justifyFull\"></span>Εκτύπωση</a>"
+            ).Title("").Width(18);
+        })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .DataSource(ds => ds
+            .Ajax()
+            .Batch(false)
+            .PageSize(40)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΑΠΟΦΑΣΗ_ΚΩΔΙΚΟΣ);
+                model.Field(p => p.ΜΑΘΗΤΗΣ_ΚΩΔ).Editable(false);
+                model.Field(p => p.ΕΡΓΟΔΟΤΗΣ).Editable(false);
+                model.Field(p => p.ΑΠΟΦΑΣΗ_ΚΩΔΙΚΟΣ).Editable(false);
+            })
+            .Create(create => create.Action("PraktikiApofasi_Create", "Ergodotes").Data("data"))
+            .Read(read => read.Action("PraktikiApofasi_Read", "Ergodotes").Data("data"))
+            .Update(update => update.Action("PraktikiApofasi_Update", "Ergodotes").Data("data"))
+            .Destroy("PraktikiApofasi_Destroy", "Ergodotes")
+            .Events(events => events.Error("error_handler"))            
+        )
+        )
+    </text>);
+    })
+    )
+
+</div>
+
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Master").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function change(e) {
+        var dataItem = this.dataItem(this.select());
+        var aitisiID = dataItem.ΑΙΤΗΣΗ_ΚΩΔ;
+
+        $("#Child").data("kendoGrid").dataSource.read({ aitisiId: aitisiID });
+        $("#Child").css("display", "block");
+    }
+
+    function data() {
+        var masterGrid = $("#Master").data("kendoGrid");
+        var aitisiID = 0;
+        // get data item for selected row
+        var dataItem = masterGrid.dataItem(masterGrid.select());
+        if (dataItem) {
+            aitisiID = dataItem.ΑΙΤΗΣΗ_ΚΩΔ;
+        }
+        return { aitisiId: aitisiID };
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        $("#Child").data("kendoGrid").dataSource.read();
+    }
+
+</script>
+

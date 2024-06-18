@@ -1,0 +1,218 @@
+﻿body {
+}
+
+/* styles for Proteus banner */
+
+.content-wrapper {
+    margin: 0 auto;
+    max-width: 960px;
+}
+
+#body {
+    background-color: #f5f5f5;
+    clear: both;
+    padding-bottom: 5px;
+}
+
+    .main-content {
+        background: #f5f5f5;
+        padding-left: 2px;
+        padding-top: 2px;
+    }
+
+    .featured + .main-content {
+        background: #f5f5f5;
+    }
+
+header .content-wrapper {
+    padding-top: 4px; 
+}
+
+footer {
+    clear: both;
+    background-color: #e2e2e2;
+    font-size: .8em;
+    height: 50px;
+}
+
+#page {
+    width:70%;
+    min-width: 900px;
+    margin: 1% auto;
+    padding: 1% 1% 0;
+    background: #fff;
+    border: 1px solid #e2e4e7;
+}
+
+h1, h2 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+}
+
+h1 {
+    font-size: 20px;
+    text-transform: none;
+}
+
+td {vertical-align:middle}
+
+h1.header {
+    margin: 0;
+    height: 100px;
+    line-height: 100px;
+    vertical-align: middle;
+    font-size: 50px;
+    font-weight: bold;
+    text-align: left;
+    color: #fff;
+    background-color: #4f81bd;
+}
+
+h2 {
+    font-size: 16px;
+    width: 45%;
+    text-align: left;
+    float: left;
+    margin: 0;
+    padding: 40px 0px 40px 0px;
+}
+
+h3 {
+    font-size: 14px;
+    width: 100%;
+    text-align: left;
+    float: left;
+    margin: 0;
+    padding: 0 9% 0 0;
+}
+
+.table {
+    width:100%;
+    height: 90px;
+    vertical-align: middle;
+    border: 1px solid white;
+    background-color:#4f81bd;
+    border-collapse: collapse;
+}
+.box {
+    float:left;
+    width:290px;
+    color:#6f6f6f;
+    margin-left:25px;
+    margin-right:0;
+    padding:44px 0 20px;
+    min-height:0;
+}
+
+.imgPlate
+{
+    display:block;
+    position:relative;
+    width:370px;
+    height:100px;
+    border:1px solid;
+    border-color:#f4f4f4 #e3e3e3 #bdbdbd #dfdfdf;
+    text-align:center;
+    margin: 0 auto;
+    text-decoration:none;
+    -moz-box-shadow:1px 1px 2px -1px #b2b2b2;
+    -webkit-box-shadow:1px 1px 2px -1px #b2b2b2;
+    box-shadow:1px 1px 2px -1px #b2b2b2;
+}
+
+.box h2 {
+    display: block;
+    float: none;
+    width: auto;
+    text-align: center;
+    padding: 0;
+}
+
+#suites .imgPlate,
+#suites .box {
+    border-width: 0;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+#suites {
+    text-align: center;
+}
+
+#suites .table {
+    width:100%;
+    height: 100px;
+    border: 1px solid black;
+    background-color:#494949;
+    border-collapse: collapse;
+}
+
+#suites .box {
+    float: none;
+    clear: none;
+    display: inline-block;
+    width: auto;
+    min-width: 300px;
+}
+
+#suites .box h2 {
+    margin-top: 1em;
+}
+
+/* Suites on Homepage */
+.suites {
+    min-width: 960px;
+    text-align: center;
+    margin: 0 -5% 3%;
+}
+
+/*.suite-column:first-child {
+    border-right: 1px solid #e0e0e0;
+}*/
+.suite-column {
+    display: inline-block;
+    min-width: 20.0%;
+    margin: 1em 0;
+    padding: 1em 0;
+}
+.suite-column img {
+    display: block;
+    margin: 2em auto;
+}
+
+.suite-column > h2 {
+    float: none;
+    text-align: center;
+    width: auto;
+    padding: 0;
+    font-size: 2.0em;
+}
+
+.suite-column > a {
+    display: inline-block;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: normal;
+    color: #ffffff;
+    background-color: #494949;
+    padding: 0.8em 0.9em 0.72em;
+    border-radius: 2px;
+    line-height: 1.2;
+    text-align: center;
+    transition-duration: 0.2s;
+    transition-property: background-color, color;
+    transition-timing-function: ease;
+}
+
+.suite-column > a:hover {
+    background-color: #FF4500;
+}
+
+.header {
+    font-size: 50px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #494949;
+}
+

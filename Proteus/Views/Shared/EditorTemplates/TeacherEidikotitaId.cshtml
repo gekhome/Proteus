@@ -1,0 +1,19 @@
+﻿@using System.Collections
+@using Proteus.Models
+@using Proteus.DAL
+@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(false)
+    .DataValueField("EIDIKOTITA_ID")
+    .DataTextField("EIDIKOTITA_DESC")
+    .OptionLabel("Επιλογή ειδικότητας...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("EidikotitesTeacherRead", "School");
+        }).ServerFiltering(true);
+    })
+)
+@Html.ValidationMessageFor(m => m)

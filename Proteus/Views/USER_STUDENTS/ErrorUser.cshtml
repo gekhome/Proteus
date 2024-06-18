@@ -1,0 +1,28 @@
+﻿@{
+    ViewBag.Title = "Σφάλμα δεδομένων";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="banner" style="background-color:dimgray;margin:0px 0px 0px 0px">
+    <div class="banner" style="align-content:center">
+        <table style="margin-top:40px">
+            <tr>
+                <td align="left" style="margin:40px 60px 40px 40px"><img src="~/images/metro/error-image.png" height="120" width="120" style="margin:20px 20px 20px 20px"></td>
+                <td>
+                    <p style="color:whitesmoke;font-family:'Segoe UI';font-size:26px;align-content:center;margin-left:40px">
+                        Παρουσιάστηκε σφάλμα μη έγκυρων δεδομένων.
+                    </p>
+                    <p></p>
+                    <p style="color:whitesmoke;font-family:'Segoe UI';font-size:26px;align-content:center;margin-left:40px">
+                        Η διαδικασία ακυρώθηκε.
+                    </p>
+                </td>
+            </tr>
+        </table>
+        <div class="banner" style="margin:10px">
+            <span style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">
+                @Html.ActionLink("Επιστροφή", "Index", "Home", null, new { @class = "btn btn-default", style = "font-size:18px" })
+            </span>
+        </div>
+    </div>
+</div>

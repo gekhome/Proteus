@@ -1,0 +1,87 @@
+﻿@using Proteus.DAL;
+@using Proteus.Models;
+
+@{
+    ViewBag.Title = "Βασικές σπουδες";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .k-grid .k-alt {
+        background-color: #e9e9e9; /* specify the alternate background-color */
+    }
+</style>
+
+<div class="page-header" style="margin:5px 60px 5px 60px">
+    <span style="margin: 5px 60px 5px 60px; font-family: 'Segoe UI'; font-size: large; text-shadow: 1px 1px #000000">
+        <font style="color:#494949;float:left;font-family:'Segoe UI'">Βασικές σπουδές</font>
+    </span>
+    <span style="margin:5px 10px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px">@Html.ActionLink("Επιστροφή", "Index", "Admin", null, new { @class = "btn btn-warning", style = "font-size:14px" })</span>
+    <button class="btn btn-success" style="margin:5px 5px 5px 5px;float:right;font-family:'Segoe UI';font-size:14px" onclick="RefreshGrid()">Ανανέωση</button>
+</div>
+
+<div class="body-content" style="margin:10px 60px 5px 60px">
+
+    @(Html.Kendo().Grid<SpoudesViewModel>()
+    .Name("Grid")
+    .Columns(columns =>
+    {
+        columns.Bound(m => m.ΒΑΘΜΙΔΑ).Width(40);
+        columns.Command(command => { command.Edit(); command.Destroy(); }).Width(34);
+    })
+        .ToolBar(toolBar =>
+        {
+            toolBar.Create();
+        })
+        .HtmlAttributes(new { style="font-size:14px" })
+        .Editable(editable => editable.Mode(GridEditMode.InLine).CreateAt(GridInsertRowPosition.Top))
+        .Navigatable()
+        .Filterable()
+        .Sortable(sortable => sortable.AllowUnsort(true).SortMode(GridSortMode.MultipleColumn))
+        .Scrollable(scr => scr.Height(400))
+        .Pageable(pageable => pageable
+        .Refresh(true)
+        .PageSizes(true)
+        .ButtonCount(5))
+        .DataSource(datasource => datasource
+            .Ajax()
+            .PageSize(20)
+            .ServerOperation(false)
+            .Model(model =>
+            {
+                model.Id(p => p.ΒΑΘΜΙΔΑ_ΚΩΔ);
+            })
+            .Create(create => create.Action("Spoudes_Create", "Admin"))
+            .Read(read => read.Action("Spoudes_Read", "Admin"))
+            .Update(update => update.Action("Spoudes_Update", "Admin"))
+            .Destroy(destroy => destroy.Action("Spoudes_Destroy", "Admin"))
+            .Events(events => events.Error("error_handler"))
+        ) @* datasource*@
+    )
+
+</div>
+
+<script type="text/javascript">
+
+    function RefreshGrid(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        grid.dataSource.read();
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "<br/>";
+                    });
+                }
+            });
+            MessageBoxAlert(message, "Σφάλμα");
+        }
+        RefreshGrid(e);
+    }
+
+</script>
+

@@ -1,0 +1,20 @@
+﻿@using System.Collections
+@using Proteus.Models
+@using Proteus.DAL
+@model int
+
+@(Html.Kendo().DropDownListFor(m => m)
+    .AutoBind(true)
+    .DataValueField("PERIOD_ID")
+    .DataTextField("ΠΕΡΙΟΔΟΣ")
+    .OptionLabel("Περίοδος...")
+    .DataSource(source =>
+    {
+        source.Read(read =>
+        {
+            read.Action("Periods_Read", "School");
+        })
+        .ServerFiltering(true);
+    })
+)
+@Html.ValidationMessageFor(m => m)
